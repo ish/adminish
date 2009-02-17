@@ -1,0 +1,31 @@
+<%inherit file="/main.html" />
+
+
+
+<script type="text/javascript">
+jQuery(document).ready(function(){ 
+  jQuery("#list").jqGrid({
+    url:'/example',
+    datatype: 'json',
+    mtype: 'GET',
+    colNames:['URL','Title'],
+    colModel :[ 
+      {name:'url', index:'url', width:55}, 
+      {name:'title', index:'title'} ],
+    pager: jQuery('#pager'),
+    rowNum:10,
+    rowList:[10,20,30],
+    sortname: 'url',
+    viewrecords: true,
+    repeatitems: false,
+    imgpath: '/js/themes/basic/images',
+    caption: 'My first grid'
+  }); 
+}); 
+</script>
+
+
+<table id="list" class="scroll"></table> 
+<div id="pager" class="scroll" style="text-align:center;"></div> 
+
+

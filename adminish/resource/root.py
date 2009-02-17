@@ -1,4 +1,6 @@
+from __future__ import with_statement
 import logging
+import math
 import clevercss
 from restish import http, resource
 from adminish.lib import base, collection, templating, guard
@@ -10,17 +12,21 @@ from formish.filestore import CachedTempFilestore
 import couchish
 from couchish.filestore import CouchDBFilestore
 
+from operator import itemgetter
+
 log = logging.getLogger(__name__)
 
-#class Root(resource.Resource):
-#    @resource.GET()
-#    @templating.page('root.html')
-#    def html(self, request):
-#        C = request.environ['couchish']
-#        page =  C.config.types['page']
-#        return {'form':build(page)}
 
 class Root(base.BasePage):
+
+    @resource.GET()
+    @templating.page('root.html')
+    def html(self, request):
+        return {}
+
+    @resource.child()
+    def example(self, request, segments):
+        return Example()
 
     @guard.guard(guard.is_admin())
     @resource.child()
@@ -59,6 +65,52 @@ class Root(base.BasePage):
             return
         ccss = templating.render(request,'ccss/%s'%file, {})
         return http.ok([],ccss)
+
+
+class Example(base.BasePage):
+
+    @resource.GET()
+    def GET(self, request):
+        """
+        http://localhost:8080/example?nd=1234901751220&_search=false&rows=10&page=1&sidx=url&sord=desc
+        nd
+        """
+        C = request.environ['couchish']
+        M = request.environ['adminish']['page']
+        T = C.config.types['page']
+        try:
+            page = int(request.GET.get('page'))
+        except ValueError:
+            page = 0
+        try:
+            numrows = int(request.GET.get('rows'))
+        except ValueError:
+            numrows = 10
+        sortkey = request.GET.get('sidx')
+        reverse = request.GET.get('sord')
+        if reverse == 'asc':
+            reverse = False
+        else:
+            reverse = True
+        with C.session() as S:
+            items = S.docs_by_type('page')
+        items = list(items)
+        items = sorted(items, key=itemgetter(sortkey), reverse=reverse)
+
+        records = len(items)
+        total_pages = int(math.ceil( float(records) / int(numrows) ))
+        if page > total_pages:
+            page = total_pages
+        start = (page-1) * numrows
+        end = page * numrows
+        results = {'page': int(page), 'total': int(total_pages), 'records': records}
+        rows = []
+        for item in items[start:end]:
+            rows.append( {'id':item['url'], 'cell':[item['url'], item['title']]} )
+
+        results['rows'] = rows
+
+        return http.ok([('Content-Type','text/javascript'),], couchish.jsonutil.dumps(results) )
 
 
 
