@@ -1,0 +1,75 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<%def name="title()">
+% if hasattr(self, 'page_title'):
+  ${self.page_title()} @ Captiva Design
+% else:
+  infomy
+% endif
+</%def>
+
+<%def name="page_javascript()">
+</%def>
+<%def name="sidebar()">
+</%def>
+<%def name="photo()">
+</%def>
+<html>
+<head>
+  <title>${self.title()}</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="stylesheet" type="text/css" href="/css/tripoli/tripoli.css" />
+  <link rel="stylesheet" type="text/css" href="/ccss/screen.css" />
+
+  <!-- start of things to merge/move somewhere better -->
+
+  <link rel="stylesheet" type="text/css" href="/css/formish.css" />
+  <link rel="stylesheet" type="text/css" href="/css/flash.css" />
+  <link rel="stylesheet" type="text/css" href="/css/clearfix.css" />
+
+  <link rel="stylesheet" type="text/css" href="/jquery-ui/jquery-ui.css" />
+  <script type="text/javascript" src="/js/jquery-1.2.6.min.js"></script>
+  <script type="text/javascript" src="/js/jquery.base64.js"></script>
+  <script type="text/javascript" src="/js/jquery-ui-personalized-1.6rc2.packed.js"></script>
+  <script type="text/javascript" src="/js/flash.js"></script>
+  <script type="text/javascript" src="/js/formish.js"></script>
+  <script type="text/javascript" src="/js/infomy.ui.js"></script>
+
+  <script tye="text/javascript">
+  //<![CDATA[
+    $(document).ready(function() {
+      formish();
+    });
+    ${self.page_javascript()}
+  //]]>
+  </script>
+
+  <!-- end of things to merge/move somewhere better -->
+
+</head>
+<body>
+  <div id="canvas">
+    <div id="logo">
+      <a href="/"><img src="/images/logo/captivadesign.png" width="180" height="90" /></a>
+    </div>
+    <div id="page">
+    <div id="body">
+      <div id="admin" class="content">
+      ${element('flash_message')()|n}
+        % if hasattr(self, 'page_title'):
+        <h1>${self.page_title()}</h1>
+        % endif
+        <a href="/admin">Back to admin</a>
+        ${self.body()}
+      </div>
+	  </div>
+	  <div id="footer">
+      <p>copyright 2008 etc</p>
+    </div>
+    </div>
+  </div>
+
+
+
+</body>
+</html>

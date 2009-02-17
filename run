@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+cd `dirname $0`
+source /home/tim/py/bin/activate
+source ./env.sh
+exec $*

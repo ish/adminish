@@ -1,0 +1,11 @@
+% for type, message in messages:
+% if type:
+<div class="flash ${type}">
+% else:
+<div class="flash">
+% endif
+  ${message}
+  <a class="clear" href="${urls.path_qs.remove_query('_message')}">clear</a>
+</div>
+% endfor
+

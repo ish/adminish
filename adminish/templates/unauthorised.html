@@ -1,0 +1,17 @@
+<%inherit file="main.html" />
+<%def name="page_title()">Unauthorised</%def>
+
+% if not identity:
+<p>You must be logged in to access this page.</p>
+${login_form()|n}
+% else:
+<p>Sorry, but you don't have permission to access this page. Please logout and
+login as a different user to try again.</p>
+<p>The reason(s) for authorisation failure are:</p>
+<ul>
+  % for error in errors:
+  <li>${error}</li>
+  % endfor
+</ul>
+% endif
+
