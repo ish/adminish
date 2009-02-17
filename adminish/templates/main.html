@@ -2,9 +2,9 @@
 
 <%def name="title()">
 % if hasattr(self, 'page_title'):
-  ${self.page_title()} @ Captiva Design
+  ${self.page_title()} @ Adminish
 % else:
-  infomy
+  Adminish
 % endif
 </%def>
 
@@ -15,6 +15,7 @@
 
   <link rel="stylesheet" type="text/css" href="/css/formish.css" />
   <link rel="stylesheet" type="text/css" href="/css/flash.css" />
+  <link rel="stylesheet" type="text/css" href="/css/screen.css" />
 
 </head>
 <body>
@@ -22,7 +23,7 @@
     <div id="page">
     <div id="body">
       ${element('flash_message')()|n}
-      <div id="content" class="content">
+      <div id="content">
         % if hasattr(self, 'page_title'):
         <h1>${self.page_title()}</h1>
         % endif

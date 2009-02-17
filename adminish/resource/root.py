@@ -1,4 +1,5 @@
 import logging
+import clevercss
 from restish import http, resource
 from adminish.lib import base, collection, templating, guard
 from couchish.couchish_formish_jsonbuilder import build
@@ -35,6 +36,30 @@ class Root(base.BasePage):
         tempfilestore = CachedTempFilestore(name='tmp')
         cdbfilestore = CouchDBFilestore(request.environ['couchish'], name='cdb')
         return FileResource(filestores=[cdbfilestore, tempfilestore])
+
+    #####
+    # clevercss
+    @resource.child('ccss/{file}')
+    def child_ccss(self, request, segments, file=None):
+        return lambda request: self.css(request, file=file)
+
+    def css(self, request, file):
+        if file is None:
+            return
+        ccss = templating.render(request,'ccss/%s'%file, {})
+        css = clevercss.convert(ccss)
+        return http.ok([('Content-Type', 'text/css')], css)
+
+    @resource.child('ccsss/{file}')
+    def child_ccsss(self, request, segments, file=None):
+        return lambda request: self.csss(request, file=file)
+
+    def csss(self, request, file):
+        if file is None:
+            return
+        ccss = templating.render(request,'ccss/%s'%file, {})
+        return http.ok([],ccss)
+
 
 
 class Admin(base.BasePage):
