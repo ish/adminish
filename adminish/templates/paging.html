@@ -1,0 +1,79 @@
+<%def name="rangefragment(range, pos)">
+%if len(range) != 0:
+    <div id="paging-range-${pos}">
+% for r in range:
+% if 'url' in r:
+      <span class="range" ><a href="${r['url']}">${r['label']}</a></span>
+% else:
+      <span class="range" >${r['label']}</span>
+% endif
+% endfor
+    </div>
+% endif
+</%def>
+
+<%def name="rangeleft(p)">
+${rangefragment(p.range_left, 'left')}
+</%def>
+
+<%def name="rangecenter(p)">
+%if p.range_center is not None:
+${rangefragment([p.range_center], 'center')}
+%endif
+</%def>
+
+<%def name="rangeright(p)">
+${rangefragment(p.range_right, 'right')}
+</%def>
+
+<%def name="next(p)">
+% if p.has_next: 
+<a href="${p.next}">next</a> 
+% endif
+</%def>
+
+<%def name="prev(p)">
+% if p.has_prev: 
+<a href="${p.prev}">prev</a> 
+% endif
+</%def>
+
+<%def name="stats(p)">
+<%
+if p.page_number is not None and p.total_pages is not None:
+    page = 'page %s of %s'%(p.page_number, p.total_pages)
+else:
+    page = ''
+if p.item_count is not None:
+    if p.item_count == 0:
+        item_count = 'no items'
+    elif p.item_count == 1:
+        item_count = '%s item'%p.item_count
+    else:
+        item_count = '%s items'%p.item_count
+    item_count = '[ %s ]'%item_count
+else:
+    item_count = ''
+page_and_item_count =  '%s %s' % (page, item_count)
+%>
+% if len(page_and_item_count) > 1:
+<div id="paging-numresults">${page} ${item_count}</div>
+% endif
+</%def>
+
+<%def name="paging(p)">
+<div id="paging">
+  ${stats(p)}
+  <div id="paging-ranges">
+    ${rangeleft(p)}
+    ${rangecenter(p)}
+    ${rangeright(p)}
+  </div>
+  <div id="paging-next">
+    ${next(p)}
+  </div>
+  <div id="paging-prev">
+    ${prev(p)}
+  </div>
+</div>
+</%def>

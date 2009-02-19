@@ -7,6 +7,7 @@ import schemaish, formish
 from adminish.lib import base, templating, flash
 
 from couchish.couchish_formish_jsonbuilder import build
+from pagingish.webpaging import CouchDBSkipLimitPaging, CouchDBPaging
 
 def confirm_doc_and_rev(src, dest):
     """
@@ -53,14 +54,18 @@ class CollectionPage(base.BasePage):
         C = request.environ['couchish']
         M = request.environ['adminish'][self.type]
         T = C.config.types[self.type]
-        with C.session() as S:
-            items = S.docs_by_type(self.type)
+        ## XXX Here we have two options for paging - a non efficient one with page ranges and an efficient one with only next prev
+        pagingdata = CouchDBSkipLimitPaging(C.session().view, '%s/all'%self.type, '%s/count'%self.type, include_docs=True)
+        #pagingdata = CouchDBPaging(C.session().view, '%s/all'%self.type, include_docs=True)
+        pagingdata.load_from_request(request)
+        items = [item.doc for item in pagingdata.docs]
+
         def page_element(name):
             E = self.element(request, name)
             if isinstance(E, Element):
                 E = util.RequestBoundCallable(E, request)
             return E
-        data = {'form': form, 'items': items, 'metadata': M,'element':page_element, 'types':T} 
+        data = {'form': form, 'items': items, 'pagingdata': pagingdata, 'metadata': M,'element':page_element, 'types':T} 
         page = templating.render(request, M['templates']['items'], data)
         return http.ok([('Content-Type', 'text/html')], page)
     

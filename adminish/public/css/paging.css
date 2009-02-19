@@ -1,0 +1,70 @@
+
+#paging a {
+  color: #999;
+}
+
+#paging {
+border-bottom:1px solid #AAA;
+border-top:1px solid #AAA;
+height:1.2em;
+margin:0 0 1em 0;
+padding:5px;
+text-align:left;
+font-size: 100%;
+font-family: "Bitstream Vera Sans", arial, verdana, helvetica, sans-serif;
+color: #555;
+position: relative;
+width: 490px;
+}
+
+#paging #paging-numresults {
+left:0pt;
+position:absolute;
+top:0.4em;
+}
+#paging #paging-prev {
+position:absolute;
+right:60px;
+top:0.4em;
+}
+#paging #paging-next {
+position:absolute;
+right:10px;
+top:0.4em;
+}
+#paging #paging-ranges {
+margin-left:91px;
+margin-right:91px;
+text-align:center;
+}
+#paging-range-left {
+position:absolute;
+right:270px;
+top:0.2em;
+font-size:120%;
+}
+#paging-range-right {
+left:270px;
+position:absolute;
+top:0.2em;
+font-size:120%;
+}
+#paging-range-center {
+border-left:1px solid #CCC;
+border-right:1px solid #CCC;
+font-weight:bold;
+font-size: 120%;
+margin-left:auto;
+margin-right:auto;
+text-align:center;
+margin-top: -2px;
+width:2.5em;
+}
+#paging .range {
+margin:0pt 10px;
+}
+#paging a, #paging a:link, #paging a:visited {
+color:#333333;
+display: inline;
+}
+

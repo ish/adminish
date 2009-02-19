@@ -1,4 +1,6 @@
 <%inherit file="/admin/main.html" />
+<%namespace name="paging" file="/paging.html"/>
+
 <%!
 from mako.template import Template
 %>
@@ -13,6 +15,8 @@ for f in types['fields']:
     {'label':f['name'].title(),'value':'${item["'+f['name']+'"]}'},
     )
 %>
+
+${paging.paging(pagingdata)}
 
 <table cellpadding="0" cellspacing="0">
   <tr>
@@ -39,6 +43,7 @@ for f in types['fields']:
 % endfor
 </table>
 
+${paging.paging(pagingdata)}
 
 
 
@@ -46,4 +51,4 @@ for f in types['fields']:
   ${form()|n}
 
 
-<%def name="title()">CAPTIVA DESIGN</%def>
+<%def name="title()">ADMINISH</%def>

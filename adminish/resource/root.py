@@ -112,6 +112,9 @@ class Example(base.BasePage):
 
         return http.ok([('Content-Type','text/javascript'),], couchish.jsonutil.dumps(results) )
 
+        
+
+
 
 
 class Admin(base.BasePage):
