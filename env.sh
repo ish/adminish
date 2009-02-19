@@ -1,2 +1,2 @@
-export PYTHONPATH=".:../restish:../schemaish:../formish:../secret:../notification:../pollen:../formishbuilder:../validatish:../convertish:../clevercss:../wsgiapptools:../couchish:../couchdb-session:../dottedish:../jsonish:../pagingish"
+export PYTHONPATH=".:../restish:../schemaish:../formish:../validatish:../convertish:../clevercss:../wsgiapptools:../couchish:../couchdb-session:../dottedish:../jsonish:../pagingish"
 

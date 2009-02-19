@@ -1,5 +1,4 @@
 from __future__ import with_statement
-from pollen import jsonutil
 from restish import resource, http, util
 from restish.page import Element
 import schemaish, formish
@@ -28,17 +27,17 @@ class CollectionPage(base.BasePage):
     type = None
     label = None
     template = 'admin/items.html'
-    itemresource = None
+    item_resource = None
 
-    def __init__(self, type=None, label=None, template=None, itemresource=None):
+    def __init__(self, type=None, label=None, template=None, item_resource=None):
         if type is not None:
             self.type = type
         if label is not None:
             self.label = label
         if template is not None:
             self.template = template
-        if itemresource is not None:
-            self.itemresource = itemresource
+        if item_resource is not None:
+            self.item_resource = item_resource
 
 
     @resource.GET()
@@ -85,7 +84,7 @@ class CollectionPage(base.BasePage):
         return http.see_other(request.url)
     
     def resource_child(self, request, segments):
-        return self.itemresource(segments[0]), segments[1:]
+        return self.item_resource(segments[0]), segments[1:]
     
 
 
