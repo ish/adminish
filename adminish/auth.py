@@ -10,7 +10,7 @@ def authenticate(credentials):
     Authenticate the given credentials returning a username or None.
     """
     if 'password' in credentials:
-        return _authenticate_password(credentials, 'spantontastic')
+        return _authenticate_password(credentials, 'password')
 
 
 def set_authenticated_username(request, username):
