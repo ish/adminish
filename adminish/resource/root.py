@@ -113,6 +113,19 @@ class Example(base.BasePage):
         return http.ok([('Content-Type','text/javascript'),], couchish.jsonutil.dumps(results) )
 
         
+class PageResource(base.BasePage):
+
+    def __init__(self, segments):
+        self.segments = segments
+
+    @resource.GET(accept='html')
+    @templating.page('page.html')
+    def page(self, request):
+        url = '/%s'%('/'.join(self.segments))
+        C = request.environ['couchish']
+        with C.session() as S:
+            page = list(S.view('page/by_url',key=url,include_docs=True))
+        return {'page': page[0].doc}
 
 
 

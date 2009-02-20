@@ -1,0 +1,13 @@
+<%! 
+import markdown
+%>
+
+<%inherit file="/main.html" />
+
+<div class="content">
+An example page with a title of 
+  ${markdown.markdown(page['title'])|n}
+</div>
+
+<%def name="title()">${page['title']}</%def>
+

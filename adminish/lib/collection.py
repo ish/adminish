@@ -54,8 +54,8 @@ class CollectionPage(base.BasePage):
         M = request.environ['adminish'][self.type]
         T = C.config.types[self.type]
         ## XXX Here we have two options for paging - a non efficient one with page ranges and an efficient one with only next prev
-        pagingdata = CouchDBSkipLimitPaging(C.session().view, '%s/all'%self.type, '%s/count'%self.type, include_docs=True)
-        #pagingdata = CouchDBPaging(C.session().view, '%s/all'%self.type, include_docs=True)
+        #pagingdata = CouchDBSkipLimitPaging(C.session().view, '%s/all'%self.type, '%s/count'%self.type, include_docs=True)
+        pagingdata = CouchDBPaging(C.session().view, '%s/all'%self.type, include_docs=True)
         pagingdata.load_from_request(request)
         items = [item.doc for item in pagingdata.docs]
 
