@@ -30,8 +30,8 @@ mySettings = {
 		{name:'Picture', key:'P', replaceWith:'![[![Alternative text]!]]([![Url:!:http://]!] "[![Title]!]")'},
 		{name:'Link', key:'L', openWith:'[', closeWith:']([![Url:!:http://]!] "[![Title]!]")', placeHolder:'Your text to link here...' },
 		{separator:'---------------'},	
-		{name:'Quotes', openWith:'> '},
-		{name:'Code Block / Code', openWith:'(!(\t|!|`)!)', closeWith:'(!(`)!)'},
+		{name:'Quotes',  replaceWith:function(h) { var lines = h.selection.split((($.browser.mozilla) ? "\n" : "\r\n")); return "> "+lines.join("\n> "); } },
+		{name:'Code Block / Code', replaceWith:function(h) { var lines = h.selection.split((($.browser.mozilla) ? "\n" : "\r\n")); return "(!(\t|!|`)!)"+lines.join("\n(!(\t|!|`)!)"); } },
 		{separator:'---------------'},
 		{name:'Preview', call:'preview', className:"preview"}
 
