@@ -2,6 +2,7 @@ from __future__ import with_statement
 import logging
 import math
 import clevercss
+import markdown
 from restish import http, resource
 from adminish.lib import base, collection, templating, guard
 from couchish.couchish_formish_jsonbuilder import build
@@ -139,6 +140,10 @@ class Admin(base.BasePage):
         model_metadata =  request.environ['adminish']
         return {'model_metadata':model_metadata}
 
+    @resource.child('_markdown')
+    def markdown(self, request, segments):
+        return Markdown()
+
     @resource.child('{type}')
     def items(self, request, segments, type=None):
         return collection.CollectionPage(type=type)
@@ -147,3 +152,9 @@ class Admin(base.BasePage):
     def item(self, request, segments, type=None, id=None):
         return collection.CollectionItemPage(id, type=type)
 
+class Markdown(base.BasePage):
+
+    @resource.POST()
+    @templating.page('admin/preview.html')
+    def GET(self, request):
+        return {'data':markdown.markdown(request.POST.get('data',''))}
