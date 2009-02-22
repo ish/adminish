@@ -26,10 +26,10 @@ neutral = c('#DDD')
 
 
 # Dimensions 
-canvas_width = c('735px')
-page_width = c('415px')
+canvas_width = c('1200px')
+page_width = c('980px')
 header_height = c('232px')
-sidebar_width = c('144px')
+sidebar_width = c('200px')
 sidebar_padding = c('20px')
 
 %>
@@ -83,4 +83,6 @@ body:
       size: 1.3em
     margin-bottom: 1.3em
 
-
+.content:
+  form div:
+    padding-bottom: 0

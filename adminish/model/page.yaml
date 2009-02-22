@@ -7,6 +7,10 @@ fields:
       widget:
         type: CheckboxMultiChoiceTreeCouchDB()
         options: category/all
+    - name: body
+      widget:
+        type: TextArea()
+        css_class: markitup
 
 views:
 - type: all

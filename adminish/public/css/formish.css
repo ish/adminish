@@ -15,16 +15,16 @@
 
 .formish-form label {
   float: left;
-  width: 100px;
+  width: 200px;
 }
 
 .formish-form .checkedpassword .inputs label {
-  margin-left: -110px;
+  margin-left: -210px;
   text-align:right;
 }
 
 .formish-form .inputs {
-  margin-left: 110px;
+  margin-left: 210px;
 }
 
 .formish-form .required label {
@@ -38,7 +38,7 @@
 }
 
 .formish-form .inputs input {
-  width: 300px;
+  width: 500px;
 }
 
 .formish-form .checkbox .inputs input, .formish-form .checkboxmultichoice input {
@@ -55,13 +55,13 @@
 }
 
 .formish-form .inputs textarea {
-  width: 400px;
+  width: 700px;
   height: 200px;
 }
 
 .formish-form .message, .formish-form .description {
   display: block;
-  margin-left: 110px;
+  margin-left: 210px;
   font-size: 79%;
 }
 
@@ -77,7 +77,7 @@
 .formish-form .actions {
   border-top: 1px dashed #ccc;
   margin-top: 5px;
-  padding: 10px 0px 5px 110px;
+  padding: 10px 0px 5px 210px;
 }
 
 .formish-form .actions input {
@@ -148,7 +148,7 @@
 }
 
 .formish-form .resttextarea .preview-frame {
-  height: 500px;
+  height: 700px;
   width: 80%;
 }
 
