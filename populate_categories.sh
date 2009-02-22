@@ -1,0 +1,1 @@
+PYTHONPATH=".:../restish:../schemaish:../formish:../validatish:../convertish:../clevercss:../wsgiapptools:../couchish:../couchdb-session:../dottedish:../jsonish:../pagingish" ./bin/initialise_categories.py -d cms -f adminish/model/categories.yaml -r

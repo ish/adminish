@@ -1,0 +1,8 @@
+fields:
+    - name: keys
+      type: Sequence(String())
+    - name: label
+
+views:
+  - type: all
+  - type: all_count
