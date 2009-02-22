@@ -1,0 +1,30 @@
+fields:
+    - name: surname
+      required: True
+
+    - name: firstname
+      required: True
+      
+    - name: phone
+
+#    - name: photo
+#      type: File()
+#      widget:
+#        type: FileUploadCouchDB()
+#        options: 
+#          resource_root: /filehandler
+#          originalurl: /images/blank.gif
+
+      
+views:
+- name: leader_summary
+  uses: [leader.firstname, leader.surname]
+  map: "function(doc) { if(doc.model_type == 'leader') { emit(doc._id, {firstname: doc.firstname, surname: doc.surname}); } }"
+
+- name: leader_summary_count
+  map: "function(doc) { if(doc.model_type == 'leader') { emit(doc._id, 1); } }"
+  reduce: "function(keys, values) { return sum(values); }"
+
+- type: all
+
+- type: all_count

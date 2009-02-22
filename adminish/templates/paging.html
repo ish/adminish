@@ -1,14 +1,16 @@
 <%def name="rangefragment(range, pos)">
-%if len(range) != 0:
-    <div id="paging-range-${pos}">
-% for r in range:
-% if 'url' in r:
-      <span class="range" ><a href="${r['url']}">${r['label']}</a></span>
-% else:
-      <span class="range" >${r['label']}</span>
-% endif
-% endfor
-    </div>
+% if range is not None:
+  %if len(range) != 0:
+      <div id="paging-range-${pos}">
+  % for r in range:
+  % if 'url' in r:
+        <span class="range" ><a href="${r['url']}">${r['label']}</a></span>
+  % else:
+        <span class="range" >${r['label']}</span>
+  % endif
+  % endfor
+      </div>
+  % endif
 % endif
 </%def>
 
@@ -64,11 +66,13 @@ page_and_item_count =  '%s %s' % (page, item_count)
 <%def name="paging(p)">
 <div id="paging">
   ${stats(p)}
+  % if p.has_range:
   <div id="paging-ranges">
     ${rangeleft(p)}
     ${rangecenter(p)}
     ${rangeright(p)}
   </div>
+  % endif
   <div id="paging-next">
     ${next(p)}
   </div>

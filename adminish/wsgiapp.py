@@ -16,7 +16,7 @@ from adminish.resource import root
 
 
 
-MODEL_NAMES = ['page']
+MODEL_NAMES = ['page','category','leader','tour']
 
 def make_app(global_conf, **app_conf):
     """

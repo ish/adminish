@@ -45,7 +45,7 @@ class CollectionPage(base.BasePage):
         C = request.environ['couchish']
         defn = C.config.types[self.type]
         if form is None:
-            form = build(defn)
+            form = build(defn, C.db)
             
         return self.render_page(request, form)
 
@@ -54,8 +54,8 @@ class CollectionPage(base.BasePage):
         M = request.environ['adminish'][self.type]
         T = C.config.types[self.type]
         ## XXX Here we have two options for paging - a non efficient one with page ranges and an efficient one with only next prev
-        #pagingdata = CouchDBSkipLimitPaging(C.session().view, '%s/all'%self.type, '%s/count'%self.type, include_docs=True)
-        pagingdata = CouchDBPaging(C.session().view, '%s/all'%self.type, include_docs=True)
+        pagingdata = CouchDBSkipLimitPaging(C.session().view, '%s/all'%self.type, '%s/all_count'%self.type, include_docs=True)
+        #pagingdata = CouchDBPaging(C.session().view, '%s/all'%self.type, include_docs=True)
         pagingdata.load_from_request(request)
         items = [item.doc for item in pagingdata.docs]
 
@@ -72,7 +72,7 @@ class CollectionPage(base.BasePage):
     def POST(self, request):
         C = request.environ['couchish']
         defn = C.config.types[self.type]
-        form = build(defn)
+        form = build(defn, C.db)
         try:
             data = form.validate(request)
         except formish.FormError:
@@ -106,7 +106,7 @@ class CollectionItemPage(base.BasePage):
     def get_form(self, request):        
         C = request.environ['couchish']
         defn = C.config.types[self.type]
-        form = build(defn, add_id_and_rev=True)
+        form = build(defn, C.db, add_id_and_rev=True)
         form.add_action(self.delete_item, 'delete')
         form.add_action(self.update_item, 'submit')
         return form

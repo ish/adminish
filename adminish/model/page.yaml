@@ -2,4 +2,12 @@ fields:
     - name: url
       viewby: True
     - name: title
+    - name: categories
+      type: Sequence(String())
+      widget:
+        type: CheckboxMultiChoiceTreeCouchDB()
+        options: category/all
 
+views:
+- type: all
+- type: all_count
