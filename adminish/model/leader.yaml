@@ -7,13 +7,11 @@ fields:
       
     - name: phone
 
-#    - name: photo
-#      type: File()
-#      widget:
-#        type: FileUploadCouchDB()
-#        options: 
-#          resource_root: /filehandler
-#          originalurl: /images/blank.gif
+    - name: photo
+      type: File()
+      widget:
+        options: 
+          show_image_thumbnail: True
 
       
 views:
