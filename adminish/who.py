@@ -1,5 +1,5 @@
 
-class AdminishIdentity(object):
+class Identity(object):
 
     def __init__(self, user):
         self.username = user['username']
@@ -37,7 +37,7 @@ class MetadataPlugin(object):
         userid = identity.get('repoze.who.userid')
         try:
             user = {'username':'admin'}
-            identity['adminish'] = AdminishIdentity(user)
+            identity['adminish'] = Identity(user)
         except client.NotFoundError:
             raise Exception("Looks like the current user's been removed from the database. Clean out your cookies and try again.")
 

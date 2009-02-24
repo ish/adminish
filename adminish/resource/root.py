@@ -4,7 +4,7 @@ import math
 import clevercss
 import markdown
 from restish import http, resource
-from adminish.lib import base, collection, templating, guard
+from adminish.lib import base, templating, guard, admin
 from couchish.couchish_formish_jsonbuilder import build
 
 from formish.fileresource import FileResource
@@ -32,7 +32,7 @@ class Root(base.BasePage):
     @guard.guard(guard.is_admin())
     @resource.child()
     def admin(self, request, segments):
-        return Admin()
+        return admin.Admin()
     
     @resource.child(resource.any)
     def page(self, request, segments):
@@ -131,30 +131,3 @@ class PageResource(base.BasePage):
 
 
 
-class Admin(base.BasePage):
-    
-    @resource.GET()
-    @templating.page('admin/root.html')
-    def GET(self, request):
-        C = request.environ['couchish']
-        model_metadata =  request.environ['adminish']
-        return {'model_metadata':model_metadata}
-
-    @resource.child('_markdown')
-    def markdown(self, request, segments):
-        return Markdown()
-
-    @resource.child('{type}')
-    def items(self, request, segments, type=None):
-        return collection.CollectionPage(type=type)
-
-    @resource.child('{type}/{id}')
-    def item(self, request, segments, type=None, id=None):
-        return collection.CollectionItemPage(id, type=type)
-
-class Markdown(base.BasePage):
-
-    @resource.POST()
-    @templating.page('admin/preview.html')
-    def GET(self, request):
-        return {'data':markdown.markdown(request.POST.get('data',''))}

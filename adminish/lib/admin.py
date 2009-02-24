@@ -1,12 +1,20 @@
 from __future__ import with_statement
+import pkg_resources
+import logging
 from restish import resource, http, util
 from restish.page import Element
 import schemaish, formish
+import couchish, couchdb
 
 from adminish.lib import base, templating, flash
 
 from couchish.couchish_formish_jsonbuilder import build
 from pagingish.webpaging import CouchDBSkipLimitPaging, CouchDBPaging
+import markdown
+
+log = logging.getLogger(__name__)
+
+
 
 def confirm_doc_and_rev(src, dest):
     """
@@ -22,11 +30,41 @@ def confirm_doc_and_rev(src, dest):
         raise ConflictError('rev is out of date')
 
 
-class CollectionPage(base.BasePage):
+class Markdown(base.BasePage):
+
+    @resource.POST()
+    @templating.page('/admin/preview.html')
+    def GET(self, request):
+        return {'data':markdown.markdown(request.POST.get('data',''))}
+
+
+class Admin(base.BasePage):
+    
+    @resource.GET()
+    @templating.page('/admin/root.html')
+    def GET(self, request):
+        C = request.environ['couchish']
+        model_metadata =  request.environ['adminish']
+        return {'model_metadata':model_metadata}
+
+    @resource.child('_markdown')
+    def markdown(self, request, segments):
+        return Markdown()
+
+    @resource.child('{type}')
+    def items(self, request, segments, type=None):
+        return Page(type=type)
+
+    @resource.child('{type}/{id}')
+    def item(self, request, segments, type=None, id=None):
+        return ItemPage(id, type=type)
+
+
+class Page(base.BasePage):
     
     type = None
     label = None
-    template = 'admin/items.html'
+    template = '/admin/items.html'
     item_resource = None
 
     def __init__(self, type=None, label=None, template=None, item_resource=None):
@@ -87,12 +125,11 @@ class CollectionPage(base.BasePage):
         return self.item_resource(segments[0]), segments[1:]
     
 
-
-class CollectionItemPage(base.BasePage):
+class ItemPage(base.BasePage):
     
     type = None
     label = None
-    template = 'admin/item.html'
+    template = '/admin/item.html'
     
     def __init__(self, id, type=None, label=None, template=None):
         self.id = id
@@ -158,3 +195,47 @@ class CollectionItemPage(base.BasePage):
         flash.add_message(request.environ, 'item updated.', 'success')
         return http.see_other(request.url.parent())
         
+
+def make_adminish_config(types):
+    allmetadata = {}
+    for type, data in types.items():
+        metadata = {}
+        m = data.get('metadata',{})
+        metadata['labels'] = m.get('labels',{})
+        metadata['labels']['singular'] = m.get('labels',{}).get('singular', type.title())
+        metadata['labels']['plural'] = m.get('labels',{}).get('plural', '%ss'%type.title())
+        metadata['templates'] = m.get('templates',{})
+        metadata['templates']['item'] = m.get('templates',{}).get('item', '/admin/item.html')
+        metadata['templates']['items'] = m.get('templates',{}).get('items','/admin/items.html')
+        try:
+            metadata['templates']['items-table'] = m.get('templates',{})['items-table']
+            for n, entry in enumerate(metadata['templates']['items-table']):
+                metadata['templates']['items-table'][n]['label'] = entry.get('label')
+                metadata['templates']['items-table'][n]['value'] = entry.get('value')
+        except KeyError:
+            pass
+        allmetadata[type] = metadata
+
+    return allmetadata
+            
+
+def make_couchish_store(app_conf):
+
+    views_filename = _couchish_config_filename('views.yaml')
+    print views_filename
+    MODEL_NAMES = ['page', 'tour', 'category', 'leader']
+    return couchish.CouchishStore(
+        couchdb.Database(app_conf['couchish.db.url']),
+        couchish.Config.from_yaml(
+            dict((name,_model_filename(name)) for name in MODEL_NAMES),
+            _couchish_config_filename('views.yaml')))
+
+
+def _model_filename(model_name):
+    return _couchish_config_filename('%s.yaml'%model_name)
+
+
+def _couchish_config_filename(filename):
+    return pkg_resources.resource_filename('adminish.model', filename)
+
+

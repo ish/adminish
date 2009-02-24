@@ -18,7 +18,7 @@ fields:
 
 - name: leader
   type: Reference()
-  refersto: leader_summary
+  refersto: leader/leader_summary
   widget:
     type: SelectChoiceCouchDB()
     options:
