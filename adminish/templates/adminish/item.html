@@ -1,0 +1,7 @@
+<%inherit file="/adminish/main.html" />
+<%def name="page_breadcrumb()"> / <a href="/admin/${type}">${metadata.get('labels',dict()).get('plural','items')}</a> </%def>
+<h2> Edit/Delete ${metadata.get('labels',dict()).get('singular')}</h2>
+${form()|n}
+
+
+<%def name="title()">ADMINISH</%def>

@@ -1,0 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<%def name="title()">
+% if hasattr(self, 'page_title'):
+  ${self.page_title()} 
+% else:
+  ADMINISH
+% endif
+</%def>
+
+<%def name="page_javascript()"></%def>
+<%def name="page_jquery()"></%def>
+<%def name="page_css()"></%def>
+<%def name="page_breadcrumb()"></%def>
+<%def name="sidebar()"></%def>
+<html>
+<head>
+  <title>${self.title()}</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+  <!-- tripoli base css -->
+  <link rel="stylesheet" type="text/css" href="/css/tripoli/tripoli.css" />
+
+  <!-- clever css style sheet -->
+  <link rel="stylesheet" type="text/css" href="/ccss/screen.css" />
+
+  <!-- Jquery -->
+  <script src="/js/jquery.js" type="text/javascript"></script>
+
+  <!-- Grid Support -->
+  <link rel="stylesheet" type="text/css" media="screen" href="/js/themes/basic/grid.css" />
+  <link rel="stylesheet" type="text/css" media="screen" href="/js/themes/jqModal.css" />
+  <script src="/js/jquery.jqGrid.js" type="text/javascript"></script>
+  <!-- Jquery extensions for grid support -->
+  <script src="/js/js/jqModal.js" type="text/javascript"></script>
+  <script src="/js/js/jqDnR.js" type="text/javascript"></script>
+
+  <!-- markitup -->
+  <script type="text/javascript" src="/markitup/jquery.markitup.js"></script>
+  <link rel="stylesheet" type="text/css" href="/markitup/skins/simple/style.css" />
+  <script type="text/javascript" src="/markitup/sets/markdown/set.js"></script>
+  <link rel="stylesheet" type="text/css" href="/markitup/sets/markdown/style.css" />
+
+  <!-- formish handling -->
+  <script type="text/javascript" src="/js/formish.js"></script>
+  <link rel="stylesheet" type="text/css" href="/css/formish.css" />
+  <!-- jquery extensions for formish handling -->
+  <script type="text/javascript" src="/js/jquery.base64.js"></script>
+  <script type="text/javascript" src="/js/jquery-ui-personalized-1.6rc2.packed.js"></script>
+
+  <!-- flash message handling -->
+  <script type="text/javascript" src="/js/flash.js"></script>
+  <link rel="stylesheet" type="text/css" href="/css/flash.css" />
+
+  <!-- clear fix css -->
+  <link rel="stylesheet" type="text/css" href="/css/clearfix.css" />
+
+  <!-- paging css -->
+  <link rel="stylesheet" type="text/css" href="/css/paging.css" />
+
+  
+
+  <script tye="text/javascript">
+  //<![CDATA[
+    $(document).ready(function() {
+      formish();
+      $(".markitup textarea").markItUp(mySettings);
+      ${self.page_jquery()}
+    });
+    ${self.page_javascript()}
+  //]]>
+  </script>
+  <style type="text/css">
+    ${self.page_css()}
+  </style>
+
+  <!-- end of things to merge/move somewhere better -->
+
+</head>
+<body>
+  <div id="canvas">
+    <div id="page">
+      <div id="body">
+        <div id="admin" class="content">
+          <a href="/admin">admin</a> ${self.page_breadcrumb()}
+          ${element('flash_message')()|n}
+          % if hasattr(self, 'page_title'):
+          <h1>${self.page_title()}</h1>
+          % endif
+          ${self.body()}
+        </div>
+	    </div>
+    </div>
+  </div>
+
+
+
+</body>
+</html>
