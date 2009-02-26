@@ -1,0 +1,42 @@
+
+Adminish requires pagingish resources, formish resources and flash-message resource
+
+
+
+Have a look at the example project, adminish-example. The example project should run by setting up a couchdb server. Including a bunch of requirements in parralel (e.g. both this project and it's requirements all under a single directory). and running the following
+
+./recreate-database.sh
+./serve.sh
+
+Here are the current requirements which should all be fetched from github (http://github.com/ish/<name>
+
+restish
+schemaish
+formish
+validatish
+convertish
+clevercss
+wsgiapptools
+couchish
+couchdb-session
+dottedish
+jsonish
+pagingish
+adminish
+
+At some point, before April 2009 hopefully, all of these modules will be eggified and uploaded to PyPI .
+
+THIS IS NOT PRODUCTION READY CODE YET. BE WARNED.
+
+
+
+TODO
+
+
+- make views file optional
+- add warning about missing models module
+- move config initialisation so it only happens once. 
+- warn about missing assets needed??
+- remove ccss
+
+
