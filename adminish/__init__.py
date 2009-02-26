@@ -1,1 +1,1 @@
-from adminish import resource, config
+from adminish import resource, config, md

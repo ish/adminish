@@ -7,7 +7,7 @@ from wsgiapptools import flash
 
 from couchish.couchish_formish_jsonbuilder import build
 from pagingish.webpaging import CouchDBSkipLimitPaging, CouchDBPaging
-import markdown
+from adminish import md
 
 log = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ def confirm_doc_and_rev(src, dest):
     HTTP exception on failure.
 
     A BadRequestError is raised if the ids do not match. A ConflictError is
-    raised if the revs do not match.
+    raised if the revs do not match.d
     """
     if src['_id'] != dest['_id']:
         raise BadRequestError('incorrect id')
@@ -50,7 +50,7 @@ class Markdown(BasePage):
     @resource.POST()
     @templating.page('/adminish/preview.html')
     def GET(self, request):
-        return {'data':markdown.markdown(request.POST.get('data',''))}
+        return {'data':md.md(request.POST.get('data',''))}
 
 
 class Admin(BasePage):
