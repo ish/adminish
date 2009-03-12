@@ -118,8 +118,7 @@ class Page(BasePage):
                 E = util.RequestBoundCallable(E, request)
             return E
         data = {'form': form, 'items': items, 'pagingdata': pagingdata, 'metadata': M,'element':page_element, 'types':T, 'type':self.type} 
-        out = templating.render(request, M['templates']['items'], data)
-        return http.ok([('Content-Type', 'text/html')], out)
+        return templating.render_response(request, self, M['templates']['items'], data)
     
     @resource.POST()
     def POST(self, request):
@@ -181,8 +180,7 @@ class ItemPage(BasePage):
                 E = util.RequestBoundCallable(E, request)
             return E
         data = {'form': form, 'metadata': M,'element':page_element, 'type': self.type}
-        out = templating.render(request, M['templates']['item'], data)
-        return http.ok([('Content-Type', 'text/html')], out)
+        return templating.render_response(request, self, M['templates']['item'], data)
             
     @resource.POST()
     def POST(self, request):
