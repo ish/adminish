@@ -30,7 +30,7 @@ itemstable = []
 for f in types['fields']:
     k = f['name']
     if '*' not in k:
-        item = 'item["'+k+'"]'
+        item = 'item.get("'+k+'","n/a")'
         image = '<img src="/filehandler/${%s.doc_id}/${%s.id}?size=50x50" />'%(item,item)
         value = '${%s}'%item
         itemstable.append(
@@ -55,10 +55,10 @@ ${paging.paging(pagingdata)}
   % if n == 0:
   <a href="${urls.path_qs.child(item['_id'])}">
     % endif
-% if isinstance(item[itemheaders['name']], File):
-${Template(itemheaders['image']).render(item=item)|n}
+    % if isinstance(item.get(itemheaders.get('name')), File):
+${Template(itemheaders.get('image','')).render(item=item)|n}
 % else:
-${Template(itemheaders['value']).render(item=item)|n}
+${Template(itemheaders.get('value','')).render(item=item)|n}
 % endif
   % if n == 0:
   </a>
