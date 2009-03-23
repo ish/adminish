@@ -66,6 +66,10 @@ class Admin(BasePage):
     def markdown(self, request, segments):
         return Markdown()
 
+    @resource.child()
+    def categories(self, request, segments):
+        return Categories()
+
     @resource.child('{type}')
     def items(self, request, segments, type=None):
         return Page(type=type)
@@ -73,6 +77,95 @@ class Admin(BasePage):
     @resource.child('{type}/{id}')
     def item(self, request, segments, type=None, id=None):
         return ItemPage(id, type=type)
+
+
+
+
+class Categories(BasePage):
+
+    @resource.GET()
+    def GET(self, request):
+        return self.html(request)
+
+    @templating.page('/adminish/facets.html')
+    def html(self, request, form=None):
+        C = request.environ['couchish']
+        facets = dict([(t['facet']['path'],t) for k, t in C.config.types.items() if k.startswith('facet_')])
+        return {'facets': facets}
+
+    @resource.child('{facet}')
+    def facet(self, request, segments, facet=None):
+        return self.render_facet(request, segments, facet)
+
+    @resource.child('{facet}/{category_path}')
+    def facet_categories(self, request, segments, facet=None, category_path=None):
+        return self.render_facet(request, segments, facet, category_path)
+
+    def render_facet(self, request, segments, facet, category_path=None):
+        C = request.environ['couchish']
+        facets = [t for k, t in C.config.types.items() if k == 'facet_%s'%facet]
+        if len(facets) == 1:
+            return Facet(facets[0], category_path)
+
+
+
+def category_form(C, facet, model_type):
+    facet_definition = C.config.types['facet_%s'%facet]['fields']
+    category_definition = C.config.types[model_type]['fields']
+    for cat in category_definition:
+        cat['name'] = 'category.*.new_category.%s'%cat['name']
+    category_group = {'name': 'category.*.new_category', 'type': 'Structure'}
+    checkbox = {'name': 'category.*.new_category.is_new','type': 'Boolean', 'widget': {'type': 'Checkbox'}}
+    facet_definition.append( category_group )
+    facet_definition.append( checkbox )
+    defn = {'fields': facet_definition + category_definition }
+    return build(defn, C.db)
+
+def filter_categories(categories, facet, facet_path, category_path):
+    out = []
+    if category_path is None:
+        depth = 0
+    else:
+        depth = len(category_path.split('.'))
+    for c in facet['category']:
+        if category_path is None or c['path'].startswith(category_path):
+            cats = c['path'].split('.')
+            if len(cats) == depth+1:
+                c['path'] = '.'.join(cats[depth:])
+                out.append(c)
+    return out
+
+class Facet(BasePage):
+
+    def __init__(self, facet, category_path):
+        self.facet = facet
+        self.path = self.facet['facet']['path']
+        self.model_type = 'facet_%s'%self.path
+        self.referenced_type = facet['facet']['model_type']
+        self.category_path = category_path
+
+    @resource.GET()
+    def GET(self, request):
+        return self.html(request)
+
+    @templating.page('/adminish/facet.html')
+    def html(self, request, form=None):
+        return self.render_page(request, form)
+
+    def render_page(self, request, form):
+        C = request.environ['couchish']
+        form = category_form(C, self.path, self.referenced_type)
+        with C.session() as S:
+            facet_docs = S.docs_by_type(self.model_type)
+            category_docs = S.docs_by_type(self.referenced_type)
+        categories = list(category_docs)
+        facet_docs = list(facet_docs)
+        assert len(facet_docs) == 1
+        facet = list(facet_docs)[0]
+        categories = filter_categories(categories, facet, self.path, self.category_path)
+        form.defaults = {'category': categories}
+        return {'categories': categories, 'form':form}
+        
 
 
 class Page(BasePage):
