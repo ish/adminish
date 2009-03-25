@@ -56,9 +56,9 @@ ${paging.paging(pagingdata)}
   <a href="${urls.path_qs.child(item['_id'])}">
     % endif
     % if isinstance(item.get(itemheaders.get('name')), File):
-${Template(itemheaders.get('image','')).render(item=item)|n}
+${Template(itemheaders.get('image','')).render_unicode(item=item)|n}
 % else:
-${Template(itemheaders.get('value','')).render(item=item)|n}
+${Template(itemheaders.get('value','')).render_unicode(item=item)|n}
 % endif
   % if n == 0:
   </a>
