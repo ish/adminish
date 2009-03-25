@@ -9,20 +9,25 @@ Have a look at the example project, adminish-example. The example project should
 ./serve.sh
 
 Here are the current requirements which should all be fetched from github (http://github.com/ish/<name>
+Packages marked by a + are in pypi. Packages marked with a * are all you need to suck the rest in.
 
-restish
-schemaish
-formish
-validatish
-convertish
-clevercss
-wsgiapptools
-couchish
-couchdb-session
-dottedish
-jsonish
-pagingish
-adminish
+
+adminish*! (when this ends up in pypi it will suck everything above in)
+    pagingish+!
+    wsgiapptools+
+
+    couchish*!
+        couchdb-session+!
+        jsonish+!
+
+    restish*
+
+    formish*
+        schemaish+
+        validatish+
+        convertish+
+        dottedish+
+
 
 At some point, before April 2009 hopefully, all of these modules will be eggified and uploaded to PyPI .
 
@@ -38,5 +43,6 @@ TODO
 - move config initialisation so it only happens once. 
 - warn about missing assets needed??
 - remove ccss
+- add category manager
 
 
