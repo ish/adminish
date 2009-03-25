@@ -1,0 +1,11 @@
+<%inherit file="/adminish/main.html" />
+<h2>Categories</h2>
+<ul>
+  % for path, facet in facets.items():
+  <li><a href="${urls.path.child(path)}">${facet['facet']['label']}</a></li>
+  % endfor
+</ul>
+ 
+
+
+<%def name="title()">ADMINISH</%def>
