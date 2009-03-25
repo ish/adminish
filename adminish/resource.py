@@ -3,6 +3,7 @@ import logging
 from restish import resource, http, util, templating, page
 import schemaish, formish
 from restish import url
+from dottedish import _set
 
 from wsgiapptools import flash
 
@@ -195,7 +196,7 @@ class Facet(BasePage):
     @resource.POST()
     def POST(self, request):
         C = request.environ['couchish']
-        form = category_form(C, self.path, self.referenced_type)
+        form = category_form(C, self.path, self.referenced_type, request)
         try:
             data = form.validate(request)
         except formish.FormError:
@@ -205,7 +206,12 @@ class Facet(BasePage):
             facet_docs = list(facet_docs)
             assert len(facet_docs) == 1
             facet = list(facet_docs)[0]
-            cats = categories.apply_changes(facet['category'], data['category'], self.path, self.category_path, create_category(S))
+            cats, changelog = categories.apply_changes(facet['category'], data['category'], self.path, self.category_path, create_category(S))
+            for old,new in changelog:
+                items = list(S.view('%s/categorypath-rev'%self.model_type,include_docs=True,startkey=old, endkey=old))
+                for item in items:
+                    _set(item.doc, item.value, new)
+            # Get the results of the view that matches each change
             facet['category'] = cats
         return http.see_other(request.url.path)
 
@@ -215,7 +221,7 @@ class Facet(BasePage):
 
     def render_page(self, request, form):
         C = request.environ['couchish']
-        form = category_form(C, self.path, self.referenced_type)
+        form = category_form(C, self.path, self.referenced_type, request)
         with C.session() as S:
             facet_docs = S.docs_by_type(self.model_type)
         facet_docs = list(facet_docs)
