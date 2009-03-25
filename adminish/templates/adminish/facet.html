@@ -1,5 +1,17 @@
 <%inherit file="/adminish/main.html" />
-<h2>Categories</h2>
+<%def name="page_breadcrumb()"> / <a href="/admin/categories">categories</a> / <a href="/admin/categories/${facet['facet']['path']}">${facet['facet']['label']}</a> </%def>
+<h2>Full Tree for ${facet['facet']['label']}</h2>
+${tree|n}
+<h2>Current Categories</h2>
+<ul>
+% for category in categories:
+<li><a href="${urls.new('/admin/categories').child('location').child(category['_path'])}">${category['data']['label']}</a></li>
+% endfor
+</ul>
+
+<h2>Edit Categories at this level</h2>
+
+
 ${form()|n}
 
 

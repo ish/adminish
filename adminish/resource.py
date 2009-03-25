@@ -2,16 +2,23 @@ from __future__ import with_statement
 import logging
 from restish import resource, http, util, templating, page
 import schemaish, formish
+from restish import url
 
 from wsgiapptools import flash
 
 from couchish.couchish_formish_jsonbuilder import build
 from pagingish.webpaging import CouchDBSkipLimitPaging, CouchDBPaging
 from adminish import md
+import categories
+
+from breve.tags.html import tags as T
+from breve.flatten import flatten
 
 log = logging.getLogger(__name__)
 
-
+def make_form(request, *args, **kwargs):
+    kwargs['renderer'] = request.environ['restish.templating'].renderer
+    return Form(*args, **kwargs)
 
 class FlashMessagesElement(page.Element):
 
@@ -79,8 +86,6 @@ class Admin(BasePage):
         return ItemPage(id, type=type)
 
 
-
-
 class Categories(BasePage):
 
     @resource.GET()
@@ -108,8 +113,7 @@ class Categories(BasePage):
             return Facet(facets[0], category_path)
 
 
-
-def category_form(C, facet, model_type):
+def category_form(C, facet, model_type, request):
     facet_definition = C.config.types['facet_%s'%facet]['fields']
     category_definition = C.config.types[model_type]['fields']
     for cat in category_definition:
@@ -119,9 +123,12 @@ def category_form(C, facet, model_type):
     facet_definition.append( category_group )
     facet_definition.append( checkbox )
     defn = {'fields': facet_definition + category_definition }
-    return build(defn, C.db)
+    b = build(defn, C.db)
+    b.renderer =  request.environ['restish.templating'].renderer
+    return b
+    
 
-def filter_categories(categories, facet, facet_path, category_path):
+def filter_categories(facet, facet_path, category_path):
     out = []
     if category_path is None:
         depth = 0
@@ -131,9 +138,46 @@ def filter_categories(categories, facet, facet_path, category_path):
         if category_path is None or c['path'].startswith(category_path):
             cats = c['path'].split('.')
             if len(cats) == depth+1:
+                c['_path'] = c['path']
                 c['path'] = '.'.join(cats[depth:])
                 out.append(c)
     return out
+
+
+
+def create_category(S):
+
+    def create(data):
+        d = dict(data)
+        d['model_type'] = 'category'
+        return S.create(d)
+
+    return create
+
+def get_parent(cat):
+    segments = cat.split('.')
+    if len(segments) == 1:
+        return ''
+    else:
+        return '.'.join(segments[:-1])
+
+def build_tree(facet, root_url, category_path):
+    ul_by_path = {}
+    root = T.ul()
+    ul_by_path[''] = root
+    for c in facet['category']:
+        u = T.ul()
+        ul_by_path[c['path']] = u
+        if c['path'] == category_path:
+            class_ = 'selected'
+        else:
+            class_ = ''
+        link = T.a(href=root_url.child(c['path']))[c['data']['label']]
+        link.attrs['class'] = class_
+        li_link = T.li()[link]
+        parent = get_parent(c['path'])              
+        ul_by_path[ parent ][ li_link, u ] 
+    return flatten(root)
 
 class Facet(BasePage):
 
@@ -148,6 +192,23 @@ class Facet(BasePage):
     def GET(self, request):
         return self.html(request)
 
+    @resource.POST()
+    def POST(self, request):
+        C = request.environ['couchish']
+        form = category_form(C, self.path, self.referenced_type)
+        try:
+            data = form.validate(request)
+        except formish.FormError:
+            return self.html(request, form)
+        with C.session() as S:
+            facet_docs = S.docs_by_type(self.model_type)
+            facet_docs = list(facet_docs)
+            assert len(facet_docs) == 1
+            facet = list(facet_docs)[0]
+            cats = categories.apply_changes(facet['category'], data['category'], self.path, self.category_path, create_category(S))
+            facet['category'] = cats
+        return http.see_other(request.url.path)
+
     @templating.page('/adminish/facet.html')
     def html(self, request, form=None):
         return self.render_page(request, form)
@@ -157,14 +218,14 @@ class Facet(BasePage):
         form = category_form(C, self.path, self.referenced_type)
         with C.session() as S:
             facet_docs = S.docs_by_type(self.model_type)
-            category_docs = S.docs_by_type(self.referenced_type)
-        categories = list(category_docs)
         facet_docs = list(facet_docs)
         assert len(facet_docs) == 1
         facet = list(facet_docs)[0]
-        categories = filter_categories(categories, facet, self.path, self.category_path)
+        root_url = url.URL('/admin/categories').child(self.path)
+        tree = build_tree(facet, root_url, self.category_path)
+        categories = filter_categories(facet, self.path, self.category_path)
         form.defaults = {'category': categories}
-        return {'categories': categories, 'form':form}
+        return {'categories': categories, 'form':form, 'tree':tree, 'facet':self.facet}
         
 
 
@@ -192,6 +253,7 @@ class Page(BasePage):
         defn = C.config.types[self.type]
         if form is None:
             form = build(defn, C.db)
+            form.renderer =  request.environ['restish.templating'].renderer
             
         return self.render_page(request, form)
 
@@ -218,6 +280,7 @@ class Page(BasePage):
         C = request.environ['couchish']
         defn = C.config.types[self.type]
         form = build(defn, C.db)
+        form.renderer =  request.environ['restish.templating'].renderer
         try:
             data = form.validate(request)
         except formish.FormError:
@@ -251,6 +314,7 @@ class ItemPage(BasePage):
         C = request.environ['couchish']
         defn = C.config.types[self.type]
         form = build(defn, C.db, add_id_and_rev=True)
+        form.renderer =  request.environ['restish.templating'].renderer
         form.add_action(self.delete_item, 'delete')
         form.add_action(self.update_item, 'submit')
         return form
