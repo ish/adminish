@@ -17,6 +17,22 @@ from breve.flatten import flatten
 
 log = logging.getLogger(__name__)
 
+
+#
+# Pager factory configuration.
+#
+
+def make_CouchDBPaging(view_func, model_type, **view_args):
+    return CouchDBPaging(view_func, '%s/all'%model_type, **view_args)
+
+def make_CouchDBSkipLimitPaging(view_func, model_type, **view_args):
+    return CouchDBSkipLimitPaging(view_func, '%s/all'%model_type,
+                                  '%s/all_count'%model_type, **view_args)
+
+PAGER_FACTORIES = {'CouchDBPaging': make_CouchDBPaging,
+                   'CouchDBSkipLimitPaging': make_CouchDBSkipLimitPaging}
+
+
 def make_form(request, *args, **kwargs):
     kwargs['renderer'] = request.environ['restish.templating'].renderer
     return Form(*args, **kwargs)
@@ -267,9 +283,7 @@ class Page(BasePage):
         C = request.environ['couchish']
         M = request.environ['adminish'][self.type]
         T = C.config.types[self.type]
-        ## XXX Here we have two options for paging - a non efficient one with page ranges and an efficient one with only next prev
-        pagingdata = CouchDBSkipLimitPaging(C.session().view, '%s/all'%self.type, '%s/all_count'%self.type, include_docs=True)
-        #pagingdata = CouchDBPaging(C.session().view, '%s/all'%self.type, include_docs=True)
+        pagingdata = PAGER_FACTORIES[M['pager']](C.session().view, self.type, include_docs=True)
         pagingdata.load_from_request(request)
         items = [item.doc for item in pagingdata.docs]
 
