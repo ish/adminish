@@ -1,0 +1,18 @@
+<%page args="field" />
+<%
+cols = field.widget.cols
+rows = field.widget.rows
+if cols is not None:
+    cols = 'cols="%s"'%field.widget.cols
+else:
+    cols = ''
+if rows is not None:
+    rows = 'rows="%s"'%field.widget.rows
+else:
+    rows = ''
+%>
+<textarea id="${field.cssname}" name="${field.name}"${cols|n}${rows|n}>
+% for v in field.value:
+${v[0]}
+% endfor
+</textarea>
