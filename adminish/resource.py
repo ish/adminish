@@ -131,8 +131,10 @@ class Categories(BasePage):
 
 
 def category_form(C, facet, model_type, request):
-    facet_definition = C.config.types['facet_%s'%facet]['fields']
-    category_definition = C.config.types[model_type]['fields']
+    # Take copies of the facet and category definitios so we can modify them
+    # without affecting the core config.
+    facet_definition = list(C.config.types['facet_%s'%facet]['fields'])
+    category_definition = [dict(i) for i in C.config.types[model_type]['fields']]
     for cat in category_definition:
         cat['name'] = 'category.*.new_category.%s'%cat['name']
     category_group = {'name': 'category.*.new_category', 'type': 'Structure'}
