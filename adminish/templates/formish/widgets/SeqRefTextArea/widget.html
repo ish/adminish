@@ -13,6 +13,6 @@ else:
 %>
 <textarea id="${field.cssname}" name="${field.name}"${cols|n}${rows|n}>
 % for v in field.value:
-${v[0]}
+${v}
 % endfor
 </textarea>
