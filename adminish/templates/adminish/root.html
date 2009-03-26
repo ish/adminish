@@ -1,10 +1,17 @@
 <%inherit file="/adminish/main.html" />
-
-<h2>Couchish Admin</h2>
+<%!
+exclude = ['category']
+%>
+<h2>Admin</h2>
 <ul>
 % for k,m in model_metadata.items():
+% if k not in exclude and not k.startswith('facet_'):
 <li><a href="${urls.new('/admin').child(k)}">${m['labels']['plural']}</a></li>
+% endif
 % endfor
 </ul>
-
+<h2>System Admin</h2>
+<ul>
+<li><a href="${urls.new('/admin').child('categories')}">Categories</a></li>
+</ul>
 <%def name="title()">ADMINISH</%def>
