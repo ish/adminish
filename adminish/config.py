@@ -30,7 +30,7 @@ def make_adminish_config(types):
     return allmetadata
             
 
-def make_couchish_store(app_conf, model_resource):
+def make_couchish_config(app_conf, model_resource):
     module, dir = model_resource.split('.',1)
     models={}
     for f in pkg_resources.resource_listdir(module, dir):
@@ -38,9 +38,7 @@ def make_couchish_store(app_conf, model_resource):
             name, remaining = f.split('.',1)
             models[name] = pkg_resources.resource_filename(model_resource, f)
     views_file = pkg_resources.resource_filename(model_resource,'views.yaml')
-    return couchish.CouchishStore(
-        couchdb.Database(app_conf['couchish.db.url']),
-        couchish.Config.from_yaml( models, views_file))
+    return couchish.Config.from_yaml( models, views_file)
 
 
 
