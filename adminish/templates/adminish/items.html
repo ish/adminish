@@ -32,7 +32,7 @@ for f in types['fields']:
     if '*' not in k:
         item = 'item.get("'+k+'","n/a")'
         image = '<img src="/filehandler/${%s.doc_id}/${%s.id}?size=50x50" />'%(item,item)
-        value = '${%s}'%item
+        value = '%% if isinstance(%s, basestring) and len(%s) > 80:\n${%s[:80]} ... [trimmed]\n%% else:\n${%s}\n%% endif\n'%(item, item, item, item)
         itemstable.append(
         {'name': k, 'label':k.title(),'value': value, 'image': image},
         )
