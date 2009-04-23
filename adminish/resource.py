@@ -23,11 +23,11 @@ log = logging.getLogger(__name__)
 #
 
 def make_CouchDBPaging(view_func, model_type, **view_args):
-    return CouchDBPaging(view_func, '%s/all'%model_type, **view_args)
+    return CouchDBPaging(view_func, '%s/all'%model_type, view_args=view_args)
 
 def make_CouchDBSkipLimitPaging(view_func, model_type, **view_args):
     return CouchDBSkipLimitPaging(view_func, '%s/all'%model_type,
-                                  '%s/all_count'%model_type, **view_args)
+                                  '%s/all_count'%model_type, view_args=view_args)
 
 PAGER_FACTORIES = {'CouchDBPaging': make_CouchDBPaging,
                    'CouchDBSkipLimitPaging': make_CouchDBSkipLimitPaging}
