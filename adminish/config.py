@@ -17,7 +17,7 @@ def make_adminish_config(types):
         metadata['templates'] = m.get('templates',{})
         metadata['templates']['item'] = m.get('templates',{}).get('item', '/adminish/item.html')
         metadata['templates']['items'] = m.get('templates',{}).get('items','/adminish/items.html')
-        metadata['pager'] = m.get('pager', 'CouchDBPaging')
+        metadata['pager'] = m.get('pager', 'Paging')
         try:
             metadata['templates']['items-table'] = m.get('templates',{})['items-table']
             for n, entry in enumerate(metadata['templates']['items-table']):

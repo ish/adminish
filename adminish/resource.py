@@ -4,13 +4,14 @@ from restish import resource, http, util, templating, page
 import schemaish, formish
 from restish import url
 from dottedish import _set
-
+from datetime import datetime
 from wsgiapptools import flash
 
 from couchish.couchish_formish_jsonbuilder import build
-from pagingish.webpaging import CouchDBSkipLimitPaging, CouchDBPaging
 from adminish import md
 import categories
+
+from pagingish import webpaging
 
 from breve.tags.html import tags as T
 from breve.flatten import flatten
@@ -22,15 +23,14 @@ log = logging.getLogger(__name__)
 # Pager factory configuration.
 #
 
-def make_CouchDBPaging(view_func, model_type, **view_args):
-    return CouchDBPaging(view_func, '%s/all'%model_type, view_args=view_args)
+def make_Pager(request, session, model_type, **view_args):
+    return webpaging.paged_view(request, session, '%s/all'%model_type, view_args)
 
-def make_CouchDBSkipLimitPaging(view_func, model_type, **view_args):
-    return CouchDBSkipLimitPaging(view_func, '%s/all'%model_type,
-                                  '%s/all_count'%model_type, view_args=view_args)
+def make_SkipLimitPager(request, session, model_type, **view_args):
+    return webpaging.paged_skiplimit_view(request, session, '%s/all'%model_type, '%s/all_count'%model_type, view_args)
 
-PAGER_FACTORIES = {'CouchDBPaging': make_CouchDBPaging,
-                   'CouchDBSkipLimitPaging': make_CouchDBSkipLimitPaging}
+PAGER_FACTORIES = {'Paging': make_Pager,
+                   'SkipLimitPaging': make_SkipLimitPager}
 
 
 def make_form(request, *args, **kwargs):
@@ -285,16 +285,15 @@ class Page(BasePage):
         C = request.environ['couchish']
         M = request.environ['adminish'][self.type]
         T = C.config.types[self.type]
-        pagingdata = PAGER_FACTORIES[M['pager']](C.session().view, self.type, include_docs=True)
-        pagingdata.load_from_request(request)
-        items = [item.doc for item in pagingdata.docs]
+        pagingdata = PAGER_FACTORIES[M['pager']](request, C.session(), self.type, include_docs=True)
+        items = [item.doc for item in pagingdata['items']]
 
         def page_element(name):
             E = self.element(request, name)
             if isinstance(E, page.Element):
                 E = util.RequestBoundCallable(E, request)
             return E
-        data = {'form': form, 'items': items, 'pagingdata': pagingdata, 'metadata': M,'element':page_element, 'types':T, 'type':self.type} 
+        data = {'form': form, 'items': items, 'pagingdata': webpaging.Paging(request, pagingdata), 'metadata': M,'element':page_element, 'types':T, 'type':self.type} 
         return templating.render_response(request, self, M['templates']['items'], data)
     
     @resource.POST()
@@ -308,6 +307,8 @@ class Page(BasePage):
         except formish.FormError:
             return self.html(request, form)
         data.update({'model_type':self.type})
+        data.update({'ctime':datetime.now().isoformat()})
+        data.update({'mtime':datetime.now().isoformat()})
         with C.session() as S:
             S.create(data)
         flash.add_message(request.environ, 'item created.', 'success')
@@ -334,8 +335,19 @@ class ItemPage(BasePage):
     
     def get_form(self, request):        
         C = request.environ['couchish']
-        defn = C.config.types[self.type]
+        defn = dict(C.config.types[self.type])
+        allowed_fields = request.GET.get('allowed',None)
+        if allowed_fields is not None:
+            allowed = allowed_fields.split(',')
+            fields = []
+            for field in defn['fields']:
+                for prefix in allowed:
+                    if field['key'].startswith(prefix):
+                        fields.append(field)
+                        break
+            defn['fields'] = fields
         form = build(defn, C.db, add_id_and_rev=True)
+        form.action_url = request.url.path_qs
         form.renderer =  request.environ['restish.templating'].renderer
         form.add_action(self.delete_item, 'delete')
         form.add_action(self.update_item, 'submit')
@@ -353,13 +365,18 @@ class ItemPage(BasePage):
     def render_page(self, request, form):
         C = request.environ['couchish']
         M = request.environ['adminish'][self.type]
+        template_override = request.GET.get('template',None)
+        if template_override == 'bare':
+            template = '/adminish/bare.html'
+        else:
+            template = M['templates']['item']
         def page_element(name):
             E = self.element(request, name)
             if isinstance(E, page.Element):
                 E = util.RequestBoundCallable(E, request)
             return E
         data = {'form': form, 'metadata': M,'element':page_element, 'type': self.type}
-        return templating.render_response(request, self, M['templates']['item'], data)
+        return templating.render_response(request, self, template, data)
             
     @resource.POST()
     def POST(self, request):
@@ -382,6 +399,7 @@ class ItemPage(BasePage):
             return self.html(request, form)
         with C.session() as S:
             doc = S.doc_by_id(self.id)
+            doc.update({'mtime':datetime.now().isoformat()})
             confirm_doc_and_rev(doc, data)
             doc.update(data)
         flash.add_message(request.environ, 'item updated.', 'success')

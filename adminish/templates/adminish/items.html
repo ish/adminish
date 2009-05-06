@@ -25,6 +25,9 @@ from schemaish.type import File
 
 <h2>${metadata.get('labels',dict()).get('plural','items')}</h2>
 
+
+${paging.alphanum_jumpref()}
+
 <%
 itemstable = []
 for f in types['fields']:

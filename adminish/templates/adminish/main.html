@@ -40,6 +40,11 @@
   <script type="text/javascript" src="/js/jquery.base64.js"></script>
   <script type="text/javascript" src="/js/jquery-sortable.js"></script>
 
+  <!-- jquery checktree -->
+  <script type="text/javascript" src="/js/jquery.checktree.js"></script>
+  <link rel="stylesheet" type="text/css" href="/css/checktree.css" />
+
+
   <!-- flash message handling -->
   <script type="text/javascript" src="/js/flash.js"></script>
   <link rel="stylesheet" type="text/css" href="/css/flash.css" />
@@ -57,6 +62,9 @@
     $(document).ready(function() {
       formish();
       $(".markitup textarea").markItUp(mySettings);
+      $(".checktree > div > ul").checkTree({labelAction: "expand", autoCheckParents: true, autoCheckChildren: false});
+      $(".checktree-autocheckchildren > div > ul").checkTree({labelAction: "expand", autoCheckParents: true, autoCheckChildren: true});
+      $(".checktree-noautocheck > div > ul").checkTree({labelAction: "expand", autoCheckParents: false, autoCheckChildren: false});
       ${self.page_jquery()}
     });
     ${self.page_javascript()}
