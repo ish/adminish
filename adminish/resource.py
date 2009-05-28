@@ -350,8 +350,8 @@ class ItemPage(BasePage):
         form._actions = []
         form.action_url = request.url.path_qs
         form.renderer =  request.environ['restish.templating'].renderer
-        form.add_action('delete','Delete',self.delete_item)
         form.add_action('submit','Submit',self.update_item)
+        form.add_action('delete','Delete',self.delete_item)
         return form
 
     @resource.GET()
