@@ -3,7 +3,6 @@ import logging
 from restish import resource, http, util, templating, page
 import schemaish, formish
 from restish import url
-from dottedish import _set
 from datetime import datetime
 from wsgiapptools import flash
 
@@ -17,6 +16,18 @@ from breve.tags.html import tags as T
 from breve.flatten import flatten
 
 log = logging.getLogger(__name__)
+
+from dottedish import api, dottedlist, dotteddict
+from couchdbsession import a8n
+
+api.wrap.when_type(a8n.List)(dottedlist.wrap_list)
+api.setitem.when_type(a8n.List)(dottedlist.setitem_list)
+api.getitem.when_type(a8n.List)(dottedlist.getitem_list)
+
+api.wrap.when_type(a8n.Dictionary)(dotteddict.wrap_dict)
+api.setitem.when_type(a8n.Dictionary)(dotteddict.setitem_dict)
+api.getitem.when_type(a8n.Dictionary)(dotteddict.getitem_dict)
+
 
 
 #
@@ -228,7 +239,7 @@ class Facet(BasePage):
             for old,new in changelog:
                 items = list(S.view('%s/categorypath-rev'%self.model_type,include_docs=True,startkey=old, endkey=old))
                 for item in items:
-                    _set(item.doc, item.value, new)
+                    set(item.doc, item.value, new)
             # Get the results of the view that matches each change
             facet['category'] = cats
         return http.see_other(request.url.path)
