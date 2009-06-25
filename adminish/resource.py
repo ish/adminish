@@ -408,7 +408,7 @@ class ItemPage(BasePage):
         try:
             data = form.validate(request)
         except formish.FormError:
-            return self.html(request, form)
+            return self.render_page(request, form)
         with C.session() as S:
             doc = S.doc_by_id(self.id)
             doc.update({'mtime':datetime.now().isoformat()})
@@ -416,9 +416,4 @@ class ItemPage(BasePage):
             doc.update(data)
         flash.add_message(request.environ, 'item updated.', 'success')
         return http.see_other(request.url.parent())
-        
-
-
-
-
 
