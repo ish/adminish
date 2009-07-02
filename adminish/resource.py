@@ -1,7 +1,7 @@
 from __future__ import with_statement
 import logging
 from restish import resource, http, util, templating, page
-import schemaish, formish
+import formish
 from restish import url
 from datetime import datetime
 from wsgiapptools import flash
@@ -46,7 +46,7 @@ PAGER_FACTORIES = {'Paging': make_Pager,
 
 def make_form(request, *args, **kwargs):
     kwargs['renderer'] = request.environ['restish.templating'].renderer
-    return Form(*args, **kwargs)
+    return formish.Form(*args, **kwargs)
 
 class FlashMessagesElement(page.Element):
 
@@ -75,9 +75,9 @@ def confirm_doc_and_rev(src, dest):
     raised if the revs do not match.d
     """
     if src['_id'] != dest['_id']:
-        raise BadRequestError('incorrect id')
+        raise http.BadRequestError('incorrect id')
     if src['_rev'] != dest['_rev']:
-        raise ConflictError('rev is out of date')
+        raise http.ConflictError([('Content-Type', 'text/plain')], 'rev is out of date')
 
 
 class Markdown(BasePage):

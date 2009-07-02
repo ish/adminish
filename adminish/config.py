@@ -1,6 +1,6 @@
 import pkg_resources
 import logging
-import couchish, couchdb
+import couchish
 
 
 log = logging.getLogger(__name__)
