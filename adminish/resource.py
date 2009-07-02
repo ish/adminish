@@ -412,6 +412,7 @@ class ItemPage(BasePage):
         with C.session() as S:
             doc = S.doc_by_id(self.id)
             doc.update({'mtime':datetime.now().isoformat()})
+            # XXX Capture the error and display a useful page.
             confirm_doc_and_rev(doc, data)
             doc.update(data)
         flash.add_message(request.environ, 'item updated.', 'success')
