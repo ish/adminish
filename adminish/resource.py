@@ -416,5 +416,8 @@ class ItemPage(BasePage):
             confirm_doc_and_rev(doc, data)
             doc.update(data)
         flash.add_message(request.environ, 'item updated.', 'success')
+        came_from = request.GET.get('came_from')
+        if came_from:
+            return http.see_other(request.application_url+came_from)
         return http.see_other(request.url.parent())
 
