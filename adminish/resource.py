@@ -283,13 +283,11 @@ class Page(BasePage):
 
 
     @resource.GET()
-    def html(self, request, form=None):
+    def html(self, request):
         C = request.environ['couchish']
         defn = C.config.types[self.type]
-        if form is None:
-            form = build(defn, C.db)
-            form.renderer =  request.environ['restish.templating'].renderer
-            
+        form = build(defn, C.db)
+        form.renderer =  request.environ['restish.templating'].renderer
         return self.render_page(request, form)
 
     def render_page(self, request, form):
@@ -316,7 +314,7 @@ class Page(BasePage):
         try:
             data = form.validate(request)
         except formish.FormError:
-            return self.html(request, form)
+            return self.render_page(request, form)
         data.update({'model_type':self.type})
         data.update({'ctime':datetime.now().isoformat()})
         data.update({'mtime':datetime.now().isoformat()})
