@@ -33,12 +33,28 @@ api.getitem.when_type(a8n.Dictionary)(dotteddict.getitem_dict)
 #
 # Pager factory configuration.
 #
+def get_views(view_args, model_type):
+    """
+    Lookup the 'all' and 'all_count' views from the metadata or construct
+    defaults.
+    """
+    # XXX Why pop?
+    metadata = view_args.pop('metadata')
+    all_view = metadata.get('views', {}).get('all')
+    if not all_view:
+        all_view= '%s/all'%model_type
+    all_count_view = metadata.get('views', {}).get('all_count')
+    if not all_count_view:
+        all_count_view= '%s/all_count'%model_type
+    return all_view, all_count_view
 
 def make_Pager(request, session, model_type, **view_args):
-    return webpaging.paged_view(request, session, '%s/all'%model_type, view_args)
+    all_view, all_count_view = get_views(view_args, model_type)
+    return webpaging.paged_view(request, session, all_view, view_args)
 
 def make_SkipLimitPager(request, session, model_type, **view_args):
-    return webpaging.paged_skiplimit_view(request, session, '%s/all'%model_type, '%s/all_count'%model_type, view_args)
+    all_view, all_count_view = get_views(view_args, model_type)
+    return webpaging.paged_skiplimit_view(request, session, all_view, all_count_view, view_args)
 
 PAGER_FACTORIES = {'Paging': make_Pager,
                    'SkipLimitPaging': make_SkipLimitPager}
@@ -153,7 +169,7 @@ def category_form(C, facet, model_type, request):
     facet_definition.append( category_group )
     facet_definition.append( checkbox )
     defn = {'fields': facet_definition + category_definition }
-    b = build(defn, C.db)
+    b = build(defn, C)
     b.renderer =  request.environ['restish.templating'].renderer
     return b
     
@@ -236,8 +252,12 @@ class Facet(BasePage):
             assert len(facet_docs) == 1
             facet = list(facet_docs)[0]
             cats, changelog = categories.apply_changes(facet['category'], data['category'], self.path, self.category_path, create_category(S))
+            if facet['metadata']['categorypath-rev']:
+                view = facet['metadata']['categorypath-rev']
+            else:
+                view = '%s/categorypath-rev'%self.model_type
             for old,new in changelog:
-                items = list(S.view('%s/categorypath-rev'%self.model_type,include_docs=True,startkey=old, endkey=old))
+                items = list(S.view(view,include_docs=True,startkey=old, endkey=old))
                 for item in items:
                     set(item.doc, item.value, new)
             # Get the results of the view that matches each change
@@ -286,7 +306,7 @@ class Page(BasePage):
     def html(self, request):
         C = request.environ['couchish']
         defn = C.config.types[self.type]
-        form = build(defn, C.db)
+        form = build(defn, C)
         form.renderer =  request.environ['restish.templating'].renderer
         return self.render_page(request, form)
 
@@ -294,7 +314,7 @@ class Page(BasePage):
         C = request.environ['couchish']
         M = request.environ['adminish'][self.type]
         T = C.config.types[self.type]
-        pagingdata = PAGER_FACTORIES[M['pager']](request, C.session(), self.type, include_docs=True)
+        pagingdata = PAGER_FACTORIES[M['pager']](request, C.session(), self.type, include_docs=True, metadata=M)
         items = [item.doc for item in pagingdata['items']]
 
         def page_element(name):
@@ -309,7 +329,7 @@ class Page(BasePage):
     def POST(self, request):
         C = request.environ['couchish']
         defn = C.config.types[self.type]
-        form = build(defn, C.db)
+        form = build(defn, C)
         form.renderer =  request.environ['restish.templating'].renderer
         try:
             data = form.validate(request)
@@ -355,7 +375,7 @@ class ItemPage(BasePage):
                         fields.append(field)
                         break
             defn['fields'] = fields
-        form = build(defn, C.db, add_id_and_rev=True)
+        form = build(defn, C, add_id_and_rev=True)
         form._actions = []
         form.action_url = request.url.path_qs
         form.renderer =  request.environ['restish.templating'].renderer

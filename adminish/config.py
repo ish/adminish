@@ -9,24 +9,29 @@ log = logging.getLogger(__name__)
 def make_adminish_config(types):
     allmetadata = {}
     for type, data in types.items():
-        metadata = {}
-        m = data.get('metadata',{})
-        metadata['labels'] = m.get('labels',{})
-        metadata['labels']['singular'] = m.get('labels',{}).get('singular', type.title())
-        metadata['labels']['plural'] = m.get('labels',{}).get('plural', '%ss'%type.title())
-        metadata['templates'] = m.get('templates',{})
-        metadata['templates']['item'] = m.get('templates',{}).get('item', '/adminish/item.html')
-        metadata['templates']['items'] = m.get('templates',{}).get('items','/adminish/items.html')
-        metadata['pager'] = m.get('pager', 'Paging')
-        try:
-            metadata['templates']['items-table'] = m.get('templates',{})['items-table']
-            for n, entry in enumerate(metadata['templates']['items-table']):
-                metadata['templates']['items-table'][n]['label'] = entry.get('label')
-                metadata['templates']['items-table'][n]['value'] = entry.get('value')
-        except KeyError:
-            pass
+        # Copy the couchish metadata so we don't affect it.
+        metadata = dict(data.get('metadata', {}))
+        # Enhance the metadata for adminish.
+        # Labels ...
+        labels = metadata.setdefault('labels', {})
+        if 'singular' not in labels:
+            labels['singular'] = type.title()
+        if 'plural' not in labels:
+            labels['plural'] = type.title() + 's'
+        # Paging ...
+        metadata.setdefault('pager', 'Paging')
+        # Templates ...
+        templates = metadata.setdefault('templates', {})
+        if 'item' not in templates:
+            templates['item'] = '/adminish/item.html'
+        if 'items' not in templates:
+            templates['items'] = '/adminish/items.html'
+        items_table = templates.get('items-table', [])
+        for n, entry in enumerate(items_table):
+            items_table[n]['label'] = entry.get('label')
+            items_table[n]['value'] = entry.get('value')
+        # Add to full set.
         allmetadata[type] = metadata
-
     return allmetadata
             
 
@@ -39,7 +44,4 @@ def make_couchish_config(app_conf, model_resource):
             models[name] = pkg_resources.resource_filename(model_resource, f)
     views_file = pkg_resources.resource_filename(model_resource,'views.yaml')
     return couchish.Config.from_yaml( models, views_file)
-
-
-
 
