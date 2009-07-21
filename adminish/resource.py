@@ -241,6 +241,7 @@ class Facet(BasePage):
     @resource.POST()
     def POST(self, request):
         C = request.environ['couchish']
+        type_config = C.config.types[self.model_type]
         form = category_form(C, self.path, self.referenced_type, request)
         try:
             data = form.validate(request)
@@ -252,9 +253,8 @@ class Facet(BasePage):
             assert len(facet_docs) == 1
             facet = list(facet_docs)[0]
             cats, changelog = categories.apply_changes(facet['category'], data['category'], self.path, self.category_path, create_category(S))
-            if facet['metadata']['categorypath-rev']:
-                view = facet['metadata']['categorypath-rev']
-            else:
+            view = type_config.get('metadata', {}).get('categorypath-rev')
+            if view is None:
                 view = '%s/categorypath-rev'%self.model_type
             for old,new in changelog:
                 items = list(S.view(view,include_docs=True,startkey=old, endkey=old))
