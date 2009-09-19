@@ -252,7 +252,7 @@ class Facet(BasePage):
             facet_docs = list(facet_docs)
             assert len(facet_docs) == 1
             facet = list(facet_docs)[0]
-            cats, changelog = categories.apply_changes(facet['category'], data['category'], self.path, self.category_path, create_category(S))
+            cats, changelog = categories.apply_changes(facet['category'], data['category'], self.category_path, create_category(S))
             view = type_config.get('metadata', {}).get('categorypath-rev')
             if view is None:
                 view = '%s/categorypath-rev'%self.model_type
