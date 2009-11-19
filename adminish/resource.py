@@ -123,7 +123,7 @@ class Admin(BasePage):
 
     @resource.child('{type}')
     def items(self, request, segments, type=None):
-        return Page(type=type)
+        return ItemsPage(type=type)
 
     @resource.child('{type}/{id}')
     def item(self, request, segments, type=None, id=None):
@@ -284,7 +284,7 @@ class Facet(BasePage):
         
 
 
-class Page(BasePage):
+class ItemsPage(BasePage):
     
     type = None
     label = None
