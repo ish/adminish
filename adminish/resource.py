@@ -129,6 +129,10 @@ class Admin(BasePage):
     def item(self, request, segments, type=None, id=None):
         return ItemPage(id, type=type)
 
+    @resource.child('{type}/_new')
+    def new_item(self, request, segments, type=None, id=None):
+        return NewItemPage(id, type=type)
+
 
 class Categories(BasePage):
 
@@ -281,7 +285,6 @@ class Facet(BasePage):
         categories = filter_categories(facet, self.path, self.category_path)
         form.defaults = {'category': categories}
         return {'categories': categories, 'form':form, 'tree':tree, 'facet':self.facet}
-        
 
 
 class ItemsPage(BasePage):
@@ -338,6 +341,47 @@ class ItemsPage(BasePage):
     def resource_child(self, request, segments):
         return self.item_resource(segments[0]), segments[1:]
     
+
+class NewItemPage(BasePage):
+    
+    type = None
+    label = None
+    template = '/adminish/new_item.html'
+    
+    def __init__(self, id, type=None, label=None, template=None):
+        self.id = id
+        if type is not None:
+            self.type = type
+        if label is not None:
+            self.label = label
+        if template is not None:
+            self.template = template
+
+    @resource.GET()
+    def html(self, request):
+        return self._html(request)
+
+    @resource.POST()
+    def post(self, request):
+        form = _form_for_type(request, self.type)
+        try:
+            data = form.validate(request)
+        except formish.FormError:
+            return self._html(request, form)
+        C = request.environ['couchish']
+        with C.session() as S:
+            S.create(_doc_create(self.type, data))
+        flash.add_message(request.environ, 'item created.', 'success')
+        return http.see_other(request.url.parent())
+
+    def _html(self, request, form=None):
+        if form is None:
+            form = _form_for_type(request, self.type)
+        M = request.environ['adminish'][self.type]
+        return templating.render_response(
+            request, self, M['templates']['new_item'],
+            {'metadata': M, 'form': form})
+
 
 class ItemPage(BasePage):
     

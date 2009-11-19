@@ -24,6 +24,8 @@ def make_adminish_config(types):
         templates = metadata.setdefault('templates', {})
         if 'item' not in templates:
             templates['item'] = '/adminish/item.html'
+        if 'new_item' not in templates:
+            templates['new_item'] = '/adminish/new_item.html'
         if 'items' not in templates:
             templates['items'] = '/adminish/items.html'
         items_table = templates.get('items-table', [])
