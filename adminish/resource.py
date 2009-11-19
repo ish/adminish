@@ -372,6 +372,9 @@ class NewItemPage(BasePage):
         with C.session() as S:
             S.create(_doc_create(self.type, data))
         flash.add_message(request.environ, 'item created.', 'success')
+        came_from = request.GET.get('came_from')
+        if came_from:
+            return http.see_other(request.application_url+came_from)
         return http.see_other(request.url.parent())
 
     def _html(self, request, form=None):
