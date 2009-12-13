@@ -3,7 +3,6 @@ import logging
 from restish import resource, http, util, templating, page
 import formish
 from restish import url
-from datetime import datetime
 from wsgiapptools import flash
 
 from couchish.couchish_formish_jsonbuilder import build
@@ -465,7 +464,6 @@ class ItemPage(BasePage):
             return self.render_page(request, form)
         with C.session() as S:
             doc = S.doc_by_id(self.id)
-            doc.update({'mtime':datetime.now().isoformat()})
             # XXX Capture the error and display a useful page.
             confirm_doc_and_rev(doc, data)
             doc.update(data)
@@ -495,10 +493,7 @@ def _doc_create(type, data):
     """
     Create a new doc from the model type and form data.
     """
-    now = datetime.utcnow().isoformat()
     doc = dict(data)
-    doc.update({'model_type': type,
-                'ctime': now,
-                'mtime': now})
+    doc.update({'model_type': type})
     return doc
 
