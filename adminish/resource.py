@@ -3,7 +3,6 @@ import logging
 from restish import resource, http, util, templating, page
 import formish
 from restish import url
-from datetime import datetime
 from wsgiapptools import flash
 
 from couchish.couchish_formish_jsonbuilder import build
@@ -123,11 +122,15 @@ class Admin(BasePage):
 
     @resource.child('{type}')
     def items(self, request, segments, type=None):
-        return Page(type=type)
+        return ItemsPage(type=type)
 
     @resource.child('{type}/{id}')
     def item(self, request, segments, type=None, id=None):
         return ItemPage(id, type=type)
+
+    @resource.child('{type}/_new')
+    def new_item(self, request, segments, type=None, id=None):
+        return NewItemPage(id, type=type)
 
 
 class Categories(BasePage):
@@ -281,10 +284,9 @@ class Facet(BasePage):
         categories = filter_categories(facet, self.path, self.category_path)
         form.defaults = {'category': categories}
         return {'categories': categories, 'form':form, 'tree':tree, 'facet':self.facet}
-        
 
 
-class Page(BasePage):
+class ItemsPage(BasePage):
     
     type = None
     label = None
@@ -304,10 +306,7 @@ class Page(BasePage):
 
     @resource.GET()
     def html(self, request):
-        C = request.environ['couchish']
-        defn = C.config.types[self.type]
-        form = build(defn, C)
-        form.renderer =  request.environ['restish.templating'].renderer
+        form = _form_for_type(request, self.type)
         return self.render_page(request, form)
 
     def render_page(self, request, form):
@@ -328,24 +327,63 @@ class Page(BasePage):
     @resource.POST()
     def POST(self, request):
         C = request.environ['couchish']
-        defn = C.config.types[self.type]
-        form = build(defn, C)
-        form.renderer =  request.environ['restish.templating'].renderer
+        form = _form_for_type(request, self.type)
         try:
             data = form.validate(request)
         except formish.FormError:
             return self.render_page(request, form)
-        data.update({'model_type':self.type})
-        data.update({'ctime':datetime.now().isoformat()})
-        data.update({'mtime':datetime.now().isoformat()})
         with C.session() as S:
-            S.create(data)
+            S.create(_doc_create(self.type, data))
         flash.add_message(request.environ, 'item created.', 'success')
         return http.see_other(request.url)
     
     def resource_child(self, request, segments):
         return self.item_resource(segments[0]), segments[1:]
     
+
+class NewItemPage(BasePage):
+    
+    type = None
+    label = None
+    template = '/adminish/new_item.html'
+    
+    def __init__(self, id, type=None, label=None, template=None):
+        self.id = id
+        if type is not None:
+            self.type = type
+        if label is not None:
+            self.label = label
+        if template is not None:
+            self.template = template
+
+    @resource.GET()
+    def html(self, request):
+        return self._html(request)
+
+    @resource.POST()
+    def post(self, request):
+        form = _form_for_type(request, self.type)
+        try:
+            data = form.validate(request)
+        except formish.FormError:
+            return self._html(request, form)
+        C = request.environ['couchish']
+        with C.session() as S:
+            S.create(_doc_create(self.type, data))
+        flash.add_message(request.environ, 'item created.', 'success')
+        came_from = request.GET.get('came_from')
+        if came_from:
+            return http.see_other(request.application_url+came_from)
+        return http.see_other(request.url.parent())
+
+    def _html(self, request, form=None):
+        if form is None:
+            form = _form_for_type(request, self.type)
+        M = request.environ['adminish'][self.type]
+        return templating.render_response(
+            request, self, M['templates']['new_item'],
+            {'metadata': M, 'form': form})
+
 
 class ItemPage(BasePage):
     
@@ -363,8 +401,6 @@ class ItemPage(BasePage):
             self.template = template
     
     def get_form(self, request):        
-        C = request.environ['couchish']
-        defn = dict(C.config.types[self.type])
         allowed_fields = request.GET.get('allowed',None)
         if allowed_fields is not None:
             allowed = allowed_fields.split(',')
@@ -375,10 +411,9 @@ class ItemPage(BasePage):
                         fields.append(field)
                         break
             defn['fields'] = fields
-        form = build(defn, C, add_id_and_rev=True)
+        form = _form_for_type(request, self.type, add_id_and_rev=True)
         form._actions = []
         form.action_url = request.url.path_qs
-        form.renderer =  request.environ['restish.templating'].renderer
         form.add_action('submit','Submit',self.update_item)
         form.add_action('delete','Delete',self.delete_item)
         return form
@@ -429,7 +464,6 @@ class ItemPage(BasePage):
             return self.render_page(request, form)
         with C.session() as S:
             doc = S.doc_by_id(self.id)
-            doc.update({'mtime':datetime.now().isoformat()})
             # XXX Capture the error and display a useful page.
             confirm_doc_and_rev(doc, data)
             doc.update(data)
@@ -438,4 +472,28 @@ class ItemPage(BasePage):
         if came_from:
             return http.see_other(request.application_url+came_from)
         return http.see_other(request.url.parent())
+
+
+###
+# Helper functions
+#
+
+def _form_for_type(request, type, add_id_and_rev=False):
+    """
+    Create a form for the given model type.
+    """
+    C = request.environ['couchish']
+    defn = C.config.types[type]
+    form = build(defn, C, add_id_and_rev=add_id_and_rev)
+    form.renderer =  request.environ['restish.templating'].renderer
+    return form
+
+
+def _doc_create(type, data):
+    """
+    Create a new doc from the model type and form data.
+    """
+    doc = dict(data)
+    doc.update({'model_type': type})
+    return doc
 
