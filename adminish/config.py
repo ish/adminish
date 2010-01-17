@@ -7,7 +7,7 @@ log = logging.getLogger(__name__)
 
 
 def make_adminish_config(types):
-    allmetadata = {}
+    config = {'types': {}}
     for type, data in types.items():
         # Copy the couchish metadata so we don't affect it.
         metadata = dict(data.get('metadata', {}))
@@ -33,8 +33,8 @@ def make_adminish_config(types):
             items_table[n]['label'] = entry.get('label')
             items_table[n]['value'] = entry.get('value')
         # Add to full set.
-        allmetadata[type] = metadata
-    return allmetadata
+        config['types'][type] = metadata
+    return config
             
 
 def make_couchish_config(app_conf, model_resource):
