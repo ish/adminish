@@ -6,9 +6,17 @@ import couchish
 log = logging.getLogger(__name__)
 
 
-def make_adminish_config(types):
-    config = {'types': {}}
-    for type, data in types.items():
+def make_adminish_config(couchish_config, store_factory):
+    """
+    Build a configuration dict for adminish.
+
+    :param: couchish_config the couchish config instance
+    :param: store_factory func with signature store_factory(request) that will
+            return the couchish store for the current request.
+    """
+    config = {'store_factory': store_factory,
+              'types': {}}
+    for type, data in couchish_config.types.items():
         # Copy the couchish metadata so we don't affect it.
         metadata = dict(data.get('metadata', {}))
         # Enhance the metadata for adminish.

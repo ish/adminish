@@ -140,7 +140,7 @@ class Categories(BasePage):
 
     @templating.page('/adminish/facets.html')
     def html(self, request, form=None):
-        C = request.environ['couchish']
+        C = _store(request)
         facets = dict([(t['facet']['path'],t) for k, t in C.config.types.items() if k.startswith('facet_')])
         return {'facets': facets}
 
@@ -153,7 +153,7 @@ class Categories(BasePage):
         return self.render_facet(request, segments, facet, category_path)
 
     def render_facet(self, request, segments, facet, category_path=None):
-        C = request.environ['couchish']
+        C = _store(request)
         facets = [t for k, t in C.config.types.items() if k == 'facet_%s'%facet]
         if len(facets) == 1:
             return Facet(facets[0], category_path)
@@ -242,7 +242,7 @@ class Facet(BasePage):
 
     @resource.POST()
     def POST(self, request):
-        C = request.environ['couchish']
+        C = _store(request)
         type_config = C.config.types[self.model_type]
         form = category_form(C, self.path, self.referenced_type, request)
         try:
@@ -271,7 +271,7 @@ class Facet(BasePage):
         return self.render_page(request, form)
 
     def render_page(self, request, form):
-        C = request.environ['couchish']
+        C = _store(request)
         form = category_form(C, self.path, self.referenced_type, request)
         with C.session() as S:
             facet_docs = S.docs_by_type(self.model_type)
@@ -309,8 +309,9 @@ class ItemsPage(BasePage):
         return self.render_page(request, form)
 
     def render_page(self, request, form):
-        C = request.environ['couchish']
-        M = request.environ['adminish']['types'][self.type]
+        config = _config(request)
+        C = _store(request)
+        M = config['types'][self.type]
         T = C.config.types[self.type]
         pagingdata = PAGER_FACTORIES[M['pager']](request, C.session(), self.type, include_docs=True, metadata=M)
         items = [item.doc for item in pagingdata['items']]
@@ -325,7 +326,7 @@ class ItemsPage(BasePage):
     
     @resource.POST()
     def POST(self, request):
-        C = request.environ['couchish']
+        C = _store(request)
         form = _form_for_type(request, self.type)
         try:
             data = form.validate(request)
@@ -366,7 +367,7 @@ class NewItemPage(BasePage):
             data = form.validate(request)
         except formish.FormError:
             return self._html(request, form)
-        C = request.environ['couchish']
+        C = _store(request)
         with C.session() as S:
             S.create(_doc_create(self.type, data))
         flash.add_message(request.environ, 'item created.', 'success')
@@ -419,7 +420,7 @@ class ItemPage(BasePage):
 
     @resource.GET()
     def html(self, request, form=None):
-        C = request.environ['couchish']
+        C = _store(request)
         if form is None:
             form = self.get_form(request)
             with C.session() as S:
@@ -447,7 +448,7 @@ class ItemPage(BasePage):
         return form.action(request)
 
     def delete_item(self, request, form):
-        C = request.environ['couchish']
+        C = _store(request)
         with C.session() as S:
             doc = S.doc_by_id(self.id)
             S.delete(doc)
@@ -455,7 +456,7 @@ class ItemPage(BasePage):
         return http.see_other(request.url.parent())
     
     def update_item(self, request, form):
-        C = request.environ['couchish']
+        C = _store(request)
         try:
             data = form.validate(request)
         except formish.FormError:
@@ -480,7 +481,7 @@ def _form_for_type(request, type, add_id_and_rev=False):
     """
     Create a form for the given model type.
     """
-    C = request.environ['couchish']
+    C = _store(request)
     defn = C.config.types[type]
     form = build(defn, C, add_id_and_rev=add_id_and_rev)
     form.renderer =  request.environ['restish.templating'].renderer
@@ -494,4 +495,22 @@ def _doc_create(type, data):
     doc = dict(data)
     doc.update({'model_type': type})
     return doc
+
+
+###
+# Configuration.
+
+
+def _config(request):
+    """
+    Retrieve the adminish config from the request.
+    """
+    return request.environ['adminish']
+
+
+def _store(request):
+    """
+    Get the couchish store from the config.
+    """
+    return _config(request)['store_factory'](request)
 
