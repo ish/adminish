@@ -15,7 +15,6 @@ Basic usage:
 '''
 
 import markdown
-import re
 
 NOBRACKET = r'[^\]\[]*'
 BRK = ( r'\[(' \

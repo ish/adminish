@@ -108,7 +108,6 @@ class Admin(BasePage):
     @resource.GET()
     @templating.page('/adminish/root.html')
     def GET(self, request):
-        C = request.environ['couchish']
         model_metadata =  request.environ['adminish']['types']
         return {'model_metadata':model_metadata}
 
@@ -428,7 +427,6 @@ class ItemPage(BasePage):
         return self.render_page(request, form)
         
     def render_page(self, request, form):
-        C = request.environ['couchish']
         M = request.environ['adminish']['types'][self.type]
         template_override = request.GET.get('template',None)
         if template_override == 'bare':
