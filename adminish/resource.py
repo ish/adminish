@@ -5,7 +5,7 @@ import formish
 from restish import url
 from wsgiapptools import flash
 
-from couchish.couchish_formish_jsonbuilder import build
+from couchish.couchish_formish_jsonbuilder import build, WidgetRegistry
 from adminish import md
 import categories
 
@@ -171,7 +171,7 @@ def category_form(C, facet, model_type, request):
     facet_definition.append( category_group )
     facet_definition.append( checkbox )
     defn = {'fields': facet_definition + category_definition }
-    b = build(defn, C)
+    b = build(defn, C, widget_registry=_widget_registry(request))
     b.renderer =  request.environ['restish.templating'].renderer
     return b
     
@@ -305,7 +305,9 @@ class ItemsPage(BasePage):
 
     @resource.GET()
     def html(self, request):
-        form = _form_for_type(request, self.type)
+        C = _store(request)
+        defn = C.config.types[self.type]
+        form = _form_for_type(request, C, defn)
         return self.render_page(request, form)
 
     def render_page(self, request, form):
@@ -327,7 +329,8 @@ class ItemsPage(BasePage):
     @resource.POST()
     def POST(self, request):
         C = _store(request)
-        form = _form_for_type(request, self.type)
+        defn = C.config.types[self.type]
+        form = _form_for_type(request, C, defn)
         try:
             data = form.validate(request)
         except formish.FormError:
@@ -362,7 +365,9 @@ class NewItemPage(BasePage):
 
     @resource.POST()
     def post(self, request):
-        form = _form_for_type(request, self.type)
+        C = _store(request)
+        defn = C.config.types[self.type]
+        form = _form_for_type(request, C, defn)
         try:
             data = form.validate(request)
         except formish.FormError:
@@ -378,7 +383,9 @@ class NewItemPage(BasePage):
 
     def _html(self, request, form=None):
         if form is None:
-            form = _form_for_type(request, self.type)
+            C = _store(request)
+            defn = C.config.types[self.type]
+            form = _form_for_type(request, C, defn)
         M = request.environ['adminish']['types'][self.type]
         return templating.render_response(
             request, self, M['templates']['new_item'],
@@ -401,17 +408,23 @@ class ItemPage(BasePage):
             self.template = template
     
     def get_form(self, request):        
+        C = _store(request)
+        defn = C.config.types[self.type]
         allowed_fields = request.GET.get('allowed',None)
         if allowed_fields is not None:
             allowed = allowed_fields.split(',')
             fields = []
+            C = _store(request)
+            defn = C.config.types[self.type]
             for field in defn['fields']:
                 for prefix in allowed:
                     if field['key'].startswith(prefix):
                         fields.append(field)
                         break
+            # Copy dict before altering it to avoid changing it permanently.
+            defn = dict(defn)
             defn['fields'] = fields
-        form = _form_for_type(request, self.type, add_id_and_rev=True)
+        form = _form_for_type(request, C, defn, add_id_and_rev=True)
         form._actions = []
         form.action_url = request.url.path_qs
         form.add_action('submit','Submit',self.update_item)
@@ -477,13 +490,12 @@ class ItemPage(BasePage):
 # Helper functions
 #
 
-def _form_for_type(request, type, add_id_and_rev=False):
+def _form_for_type(request, C, defn, add_id_and_rev=False):
     """
     Create a form for the given model type.
     """
-    C = _store(request)
-    defn = C.config.types[type]
-    form = build(defn, C, add_id_and_rev=add_id_and_rev)
+    form = build(defn, C, add_id_and_rev=add_id_and_rev,
+                 widget_registry=_widget_registry(request))
     form.renderer =  request.environ['restish.templating'].renderer
     return form
 
@@ -513,4 +525,12 @@ def _store(request):
     Get the couchish store from the config.
     """
     return _config(request)['store_factory'](request)
+
+
+def _widget_registry(request):
+    """
+    Create a widget registry from the config, defaulting to couchish's default.
+    """
+    factory = _config(request).get('widget_registry_factory') or WidgetRegistry
+    return factory(_store(request))
 
