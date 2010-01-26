@@ -6,15 +6,19 @@ import couchish
 log = logging.getLogger(__name__)
 
 
-def make_adminish_config(couchish_config, store_factory):
+def make_adminish_config(couchish_config, store_factory,
+                         widget_registry_factory=None):
     """
     Build a configuration dict for adminish.
 
     :param: couchish_config the couchish config instance
     :param: store_factory func with signature store_factory(request) that will
             return the couchish store for the current request.
+    :param: widget_registry_factory optional callable with signature f(store)
+            that returns the widget registry used to construct editing forms.
     """
     config = {'store_factory': store_factory,
+              'widget_registry_factory': widget_registry_factory,
               'types': {}}
     for type, data in couchish_config.types.items():
         # Copy the couchish metadata so we don't affect it.
