@@ -16,7 +16,7 @@ from breve.flatten import flatten
 
 log = logging.getLogger(__name__)
 
-from dottedish import api, dottedlist, dotteddict
+from dottedish import api, dottedlist, dotteddict, set as _set
 from couchdbsession import a8n
 
 api.wrap.when_type(a8n.List)(dottedlist.wrap_list)
@@ -213,7 +213,9 @@ def build_tree(facet, root_url, category_path):
     ul_by_path = {}
     root = T.ul()
     ul_by_path[''] = root
-    for c in facet['category']:
+    cats = list(facet['category'])
+    cats.sort(lambda x, y: cmp(len(x['path'].split('.')), len(y['path'].split('.'))))
+    for c in cats:
         u = T.ul()
         ul_by_path[c['path']] = u
         if c['path'] == category_path:
@@ -230,6 +232,7 @@ def build_tree(facet, root_url, category_path):
 class Facet(BasePage):
 
     def __init__(self, facet, category_path):
+        # facet is the facet dict where category_path is the key string
         self.facet = facet
         self.path = self.facet['facet']['path']
         self.model_type = 'facet_%s'%self.path
@@ -254,14 +257,19 @@ class Facet(BasePage):
             facet_docs = list(facet_docs)
             assert len(facet_docs) == 1
             facet = list(facet_docs)[0]
-            cats, changelog = categories.apply_changes(facet['category'], data['category'], self.category_path, create_category(S))
+            # facet is the couch document for 'facet_%s'%path where the docs has a key 'category'
+            # which is a list of dicts =
+            # [{'path': 'scotland.argyll', 
+            #   'data': ref_to_category whose keys= 'keywords','model_type','_ref','label',
+            #   'id': couchuuid},]
+            cats, changelog = categories.apply_changes(facet['category'], data['category'], self.model_type, self.category_path, create_category(S))
             view = type_config.get('metadata', {}).get('categorypath-rev')
             if view is None:
                 view = '%s/categorypath-rev'%self.model_type
             for old,new in changelog:
                 items = list(S.view(view,include_docs=True,startkey=old, endkey=old))
                 for item in items:
-                    set(item.doc, item.value, new)
+                    _set(item.doc, item.value, new)
             # Get the results of the view that matches each change
             facet['category'] = cats
         return http.see_other(request.url.path)
