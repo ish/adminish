@@ -46,6 +46,21 @@ def make_adminish_config(couchish_config, store_factory,
             items_table[n]['value'] = entry.get('value')
         # Add to full set.
         config['types'][type] = metadata
+        # Create entries for index
+        indexes = metadata.setdefault('indexes', [])
+        for index in indexes:
+            if 'label' not in index:
+                index['label'] = index['name']
+            if 'var' not in index:
+                index['var'] = index['name']
+            if 'data' not in index:
+                index['data'] = '%%(%s)s'%index['var']
+            if isinstance(index['data'], basestring):
+                index['data'] = [index['data']]
+            if 'sortable' not in index:
+                index['sortable'] = False
+            if 'type' not in index:
+                index['type'] = 'full'
     return config
             
 
