@@ -24,7 +24,7 @@ from schemaish.type import File
 
 
 <h2>${metadata.get('labels',dict()).get('plural','items')}</h2>
-
+${searchform()|n}
 <%
 itemstable = []
 for f in types['fields']:

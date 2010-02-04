@@ -1,7 +1,7 @@
 from __future__ import with_statement
 import logging
 from restish import resource, http, util, templating, page
-import formish
+import formish, schemaish, validatish
 from restish import url
 from wsgiapptools import flash
 
@@ -292,6 +292,13 @@ class Facet(BasePage):
         form.defaults = {'category': categories}
         return {'categories': categories, 'form':form, 'tree':tree, 'facet':self.facet}
 
+def make_search_form(request):
+    s = schemaish.Structure()
+    s.add('q', schemaish.String())
+    f = formish.Form(s, name="search", method="GET")
+    return f
+
+
 
 class ItemsPage(BasePage):
     
@@ -323,15 +330,36 @@ class ItemsPage(BasePage):
         C = _store(request)
         M = config['types'][self.type]
         T = C.config.types[self.type]
-        pagingdata = PAGER_FACTORIES[M['pager']](request, C.session(), self.type, include_docs=True, metadata=M)
-        items = [item.doc for item in pagingdata['items']]
+
+        searchform = make_search_form(request)
+        if not formish.form_in_request(request) == searchform.name:
+            q = None
+        else:
+            data = searchform.validate(request)
+            q = data['q']
+
+        pager = PAGER_FACTORIES[M['pager']]
+        if q:
+            searcher = request.environ['searcher']
+            pagingdata = webpaging.paged_search(request, searcher, self.type, q, max_pagesize=10)
+            keys = [item.id for item in pagingdata['items']]
+            with C.session() as S:
+                results = S.docs_by_type(self.type, keys=keys)
+            items = results
+        else:
+            pagingdata = pager(request, C.session(), self.type, include_docs=True, metadata=M)
+            items = [item.doc for item in pagingdata['items']]
+
+
+
+
 
         def page_element(name):
             E = self.element(request, name)
             if isinstance(E, page.Element):
                 E = util.RequestBoundCallable(E, request)
             return E
-        data = {'form': form, 'items': items, 'pagingdata': webpaging.Paging(request, pagingdata), 'metadata': M,'element':page_element, 'types':T, 'type':self.type} 
+        data = {'form': form, 'items': items, 'pagingdata': webpaging.Paging(request, pagingdata), 'metadata': M,'element':page_element, 'types':T, 'type':self.type, 'searchform': searchform} 
         return templating.render_response(request, self, M['templates']['items'], data)
     
     @resource.POST()
