@@ -42,8 +42,12 @@ def make_adminish_config(couchish_config, store_factory,
             templates['items'] = '/adminish/items.html'
         items_table = templates.get('items-table', [])
         for n, entry in enumerate(items_table):
-            items_table[n]['label'] = entry.get('label')
-            items_table[n]['value'] = entry.get('value')
+            if 'label' in entry:
+                items_table[n]['label'] = entry['label']
+            else:
+                items_table[n]['label'] = entry['name'].title()
+            if 'value' in entry:
+                items_table[n]['value'] = entry['value']
         # Add to full set.
         config['types'][type] = metadata
         # Create entries for index

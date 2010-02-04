@@ -26,16 +26,25 @@ from schemaish.type import File
 <h2>${metadata.get('labels',dict()).get('plural','items')}</h2>
 ${searchform()|n}
 <%
+def default_image(k):
+    item = 'item.get("'+k+'","n/a")'
+    return '<img src="/filehandler/${%s.doc_id}/${%s.id}?size=50x50" />'%(item,item)
+def default_value(k):
+    item = 'item.get("'+k+'","n/a")'
+    if isinstance(item, basestring):
+        return '%% if isinstance(%s, basestring) and len(%s) > 80:\n${%s[:80]} ... [trimmed]\n%% else:\n${%s}\n%% endif\n'%(item, item, item, item)
+    else:
+        return item
 itemstable = []
 for f in types['fields']:
     k = f['name']
     if '*' not in k:
-        item = 'item.get("'+k+'","n/a")'
-        image = '<img src="/filehandler/${%s.doc_id}/${%s.id}?size=50x50" />'%(item,item)
-        value = '%% if isinstance(%s, basestring) and len(%s) > 80:\n${%s[:80]} ... [trimmed]\n%% else:\n${%s}\n%% endif\n'%(item, item, item, item)
+        image = default_image(k)
+        value = default_value(k)
         itemstable.append(
         {'name': k, 'label':k.title(),'value': value, 'image': image},
         )
+
 %>
 
 ${paging.paging(pagingdata)}
@@ -55,10 +64,10 @@ ${paging.paging(pagingdata)}
   % if n == 0:
   <a href="${urls.path_qs.child(item['_id'])}">
     % endif
-    % if isinstance(item.get(itemheaders.get('name')), File):
-${Template(itemheaders.get('image','')).render_unicode(item=item)|n}
+% if isinstance(item.get(itemheaders.get('name')), File):
+${Template(itemheaders.get('image',default_image(itemheaders['name']))).render_unicode(item=item)|n}
 % else:
-${Template(itemheaders.get('value','')).render_unicode(item=item, urls=urls)|n}
+${Template(itemheaders.get('value',default_value(itemheaders['name']))).render_unicode(item=item, urls=urls)|n}
 % endif
   % if n == 0:
   </a>
