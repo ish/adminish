@@ -262,7 +262,7 @@ class Facet(BasePage):
             # [{'path': 'scotland.argyll', 
             #   'data': ref_to_category whose keys= 'keywords','model_type','_ref','label',
             #   'id': couchuuid},]
-            cats, changelog = categories.apply_changes(facet['category'], data['category'], self.model_type, self.category_path, create_category(S))
+            cats, changelog = categories.apply_changes(facet['category'], data['category'], self.category_path, create_category(S))
             view = type_config.get('metadata', {}).get('categorypath-rev')
             if view is None:
                 view = '%s/categorypath-rev'%self.model_type
