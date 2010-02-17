@@ -4,7 +4,6 @@ Indexing and searching.
 
 import logging
 import os.path
-from joecornish.lib import pricing
 from operator import itemgetter
 from couchfti import index, search
 from adminish.expand import expand
@@ -16,28 +15,6 @@ log = logging.getLogger()
 
 # ===========================================================================
 # Indexing config and script.
-
-
-# Classifiers "pigeon hole" documents into groups, mostly to decide how to
-# create the index doc.
-
-def model_type_classifier(doc):
-    return doc.get('model_type')
-
-def product_classifier(doc):
-    if doc.get('model_type') == 'product' and doc['photo']['photographer'] == 'Joe Cornish':
-        return 'product'
-
-def index_doc_from_product_doc(db, doc):
-
-    ixdoc = xappy.UnprocessedDocument()
-    ixdoc.id = doc['_id']
-    if 'type' in doc:
-        ixdoc.fields.append(xappy.Field('type', doc['type'].lower()))
-    if len(doc['photo']['location_category']) > 0:
-        for l in doc['photo']['location_category']:
-            ixdoc.fields.append(xappy.Field('location', l['path']))
-    return ixdoc
 
 
 # INDEXES (the Indexer's config) is a mapping of "symbolic" index name to index
