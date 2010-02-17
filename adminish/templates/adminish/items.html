@@ -1,13 +1,8 @@
 <%inherit file="/adminish/main.html" />
 <%namespace name="paging" file="/paging.html"/>
-
-<%def name="page_jquery()">
-$('#form').hide();
-$('#add_new').click(function() {
-  $('#form').slideToggle();
-  return false;
-});
-</%def>
+<%!
+from dottedish import api
+%>
 <%def name="page_css()">
 h2 span.info {
 font-weight: normal;
@@ -24,13 +19,15 @@ from schemaish.type import File
 
 
 <h2>${metadata.get('labels',dict()).get('plural','items')}</h2>
+<a id="add_new" href="${urls.path_qs.child('_new')}">Add ${metadata.get('labels',dict()).get('singular','item')}</a>
+
 ${searchform()|n}
 <%
 def default_image(k):
-    item = 'item.get("'+k+'","n/a")'
+    item = 'api.unwrap(api.get(item,"'+k+'","n/a"))'
     return '<img src="/filehandler/${%s.doc_id}/${%s.id}?size=50x50" />'%(item,item)
 def default_value(k):
-    item = 'item.get("'+k+'","n/a")'
+    item = 'api.unwrap(api.get(item,"'+k+'","n/a"))'
     if isinstance(item, basestring):
         return '%% if isinstance(%s, basestring) and len(%s) > 80:\n${%s[:80]} ... [trimmed]\n%% else:\n${%s}\n%% endif\n'%(item, item, item, item)
     else:
@@ -47,6 +44,7 @@ for f in types['fields']:
 
 %>
 
+${paging.stats(pagingdata)}
 ${paging.paging(pagingdata)}
 
 <table cellpadding="0" cellspacing="0">
@@ -65,9 +63,9 @@ ${paging.paging(pagingdata)}
   <a href="${urls.path_qs.child(item['_id'])}">
     % endif
 % if isinstance(item.get(itemheaders.get('name')), File):
-${Template(itemheaders.get('image',default_image(itemheaders['name']))).render_unicode(item=item)|n}
+${Template(itemheaders.get('image',default_image(itemheaders['name']))).render_unicode(item=item, api=api)|n}
 % else:
-${Template(itemheaders.get('value',default_value(itemheaders['name']))).render_unicode(item=item, urls=urls)|n}
+${Template(itemheaders.get('value',default_value(itemheaders['name']))).render_unicode(item=item, api=api, urls=urls)|n}
 % endif
   % if n == 0:
   </a>
@@ -81,9 +79,6 @@ ${Template(itemheaders.get('value',default_value(itemheaders['name']))).render_u
 ${paging.paging(pagingdata)}
 
 
-
-<h2 id="add_new">Add ${metadata.get('labels',dict()).get('singular','item')} <span class="info">(click to open)</span></h2>
-  ${form()|n}
 
 
 <%def name="title()">ADMINISH</%def>
