@@ -1,0 +1,12 @@
+{
+   "username": "admin",
+   "first_names": "<first_name>",
+   "last_name": "<last_name>",
+   "roles": [
+       "_system/administrator"
+   ],
+   "model_type": "user",
+   "credentials": {
+       "password": "<password>"
+   }
+}

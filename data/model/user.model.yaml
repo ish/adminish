@@ -1,0 +1,51 @@
+fields:
+    - name: username
+      viewby: True
+    - name: email
+    - name: first_names
+    - name: last_name
+
+    - name: credentials
+      type: Structure
+    - name: credentials.password
+
+    - name: roles
+      type: Sequence
+      attr: 
+        type: String
+
+views:
+    - type: all
+
+    - name: summary
+      uses: [user.username, user.first_names, user.last_name]
+      map: |
+        function(doc) {
+            if(doc.model_type == 'user') {
+                emit(doc._id, {username: doc.username,
+                               first_names: doc.first_names,
+                               last_name: doc.last_name,
+                               });
+            }
+        }
+
+    - name: by_identifiers
+      map: |
+        function(doc) {
+            if(doc.model_type == 'user') {
+                emit(doc.username, null);
+                if (doc.email && doc.username != doc.email) {
+                  emit(doc.email, null);
+                }
+            }
+        }
+
+    - name: by_role
+      map: |
+        function(doc) {
+          if(doc.model_type == 'user' && doc.roles) {
+            for each (role in doc.roles) {
+              emit(role, null);
+            }
+          }
+        }
