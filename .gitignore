@@ -4,3 +4,4 @@ dist
 *swp
 *swo
 cache/*
+*.egg-info
