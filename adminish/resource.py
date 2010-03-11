@@ -7,7 +7,7 @@ from wsgiapptools import flash
 
 from couchish.couchish_formish_jsonbuilder import build, WidgetRegistry
 from adminish import md
-import categories
+import adminishcategories as categories
 
 from pagingish import webpaging
 

@@ -6,7 +6,7 @@ import couchish
 log = logging.getLogger(__name__)
 
 
-def make_adminish_config(couchish_config, store_factory,
+def make_adminish_config(couchish_config, store_factory=None,
                          widget_registry_factory=None):
     """
     Build a configuration dict for adminish.
@@ -65,8 +65,25 @@ def make_adminish_config(couchish_config, store_factory,
                 index['sortable'] = False
             if 'type' not in index:
                 index['type'] = 'full'
+
     return config
-            
+
+
+def add_initial_data(couchish_config, store):
+    """
+    Build a configuration dict for adminish.
+
+    :param: couchish_config the couchish config instance
+    :param: store a couchish store
+    """
+    for type, data in couchish_config.types.items():
+        # Set up initial data if exists
+        initial_data = data.get('initial_data',[])
+        for data in initial_data:
+            data['model_type'] = type
+            with store.session() as S:
+                S.create(data)
+
 
 def make_couchish_config(app_conf, model_resource):
     module, dir = model_resource.split('.',1)
