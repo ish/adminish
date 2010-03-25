@@ -1,3 +1,9 @@
 * add a default user somehow
 * add an index by default or don't show the search box if there are no indexes
 
+Review use of class attributes on resources. I don't think label and template
+are used anymore.
+
+Review use of ItemsPage.item_resource ... I don't think it's accessible because
+there's a template match that would bypass it on the Adminish resource.
+
