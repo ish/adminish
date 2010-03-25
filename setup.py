@@ -28,11 +28,6 @@ setup(name='adminish',
           'wsgiapptools',
           'pagingish',
           'breve',
-          'pastescript',
-          'WebError',
-          'repoze.who',
-          'menuish',
-          'notification',
       ],
       entry_points="""
       # -*- Entry points: -*-
