@@ -8,6 +8,7 @@ from operator import itemgetter
 from couchfti import index, search
 from adminish.expand import expand
 from dottedish import api
+from types import ListType
 
 import xappy
 
@@ -27,7 +28,13 @@ def create_classifier(model_type):
             return model_type
     return _classifier
 
-
+def import_func(name):
+    modname, funcname = name.split(':')
+    mod = __import__(modname)
+    components = modname.split('.')
+    for comp in components[1:]:
+        mod = getattr(mod, comp)
+    return getattr(mod, funcname)
 
 def create_factory(model_type, i):
     def _factory(db, doc):
@@ -37,9 +44,20 @@ def create_factory(model_type, i):
             for data in D['data']:
                 data, num_items = expand(data, doc)
                 for n in xrange(num_items):
-                    index_text = (data%{'n':n})%api.dotted(doc)
-                    print 'INDEX_TEXT',index_text
-                    ixdoc.fields.append(xappy.Field(D['name'], index_text))
+                    if 'factory' in D:
+                        out = import_func(D['factory'])(doc)
+                        if isinstance(out, ListType):
+                            for index_text in out:
+                                print 'INDEX_TEXT',index_text
+                                ixdoc.fields.append(xappy.Field(D['name'], index_text))
+                        else:
+                            index_text = out
+                            print 'INDEX_TEXT',index_text
+                            ixdoc.fields.append(xappy.Field(D['name'], index_text))
+                    else:
+                        index_text = (data%{'n':n})%api.dotted(doc)
+                        print 'INDEX_TEXT',index_text
+                        ixdoc.fields.append(xappy.Field(D['name'], index_text))
         return ixdoc
     return _factory
 
@@ -66,9 +84,9 @@ def create_indexes(config):
         index['classifier'] = create_classifier(type)
         index['factories'] = {type: create_factory(type, index_data)}
         index['fields'] = create_fields(type, index_data)
-        indexes[type] = index        
+        indexes[type] = index
     return indexes
-        
+
 
 class Indexer(index.Indexer):
     def __init__(self, db, path, **args):
