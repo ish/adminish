@@ -62,14 +62,21 @@ def create_factory(model_type, i):
     return _factory
 
 
-index_type = {'exact': xappy.FieldActions.INDEX_EXACT, 'full': xappy.FieldActions.INDEX_FREETEXT}
+index_type = {
+    'exact': xappy.FieldActions.INDEX_EXACT,
+    'full': xappy.FieldActions.INDEX_FREETEXT,
+    'sortable': xappy.FieldActions.SORTABLE,
+}
 
 def create_fields(model_type, i):
     fields = []
     if len(i) == 0:
         return []
     for d in i:
-        fields.append( ([d['name'], index_type[d['type']]], {}) )
+        kwargs = {}
+        if d.get('type') is not None:
+            kwargs['type'] = d['type']
+        fields.append( ([d['name'], index_type[d['action']]], kwargs) )
     return fields
 
 

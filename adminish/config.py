@@ -63,8 +63,8 @@ def make_adminish_config(couchish_config, store_factory=None,
                 index['data'] = [index['data']]
             if 'sortable' not in index:
                 index['sortable'] = False
-            if 'type' not in index:
-                index['type'] = 'full'
+            if 'action' not in index:
+                index['action'] = 'full'
 
     return config
 
